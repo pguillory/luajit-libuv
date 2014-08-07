@@ -1,15 +1,5 @@
-require 'strict'
 local ffi = require 'ffi'
-
-local function ctype(name, destructor)
-  local ctype, mt = {}, {}
-  ctype.__index = ctype
-  ffi.metatype(name, ctype)
-  function mt:__call(cdata)
-    return ffi.gc(cdata, destructor or ffi.C.free)
-  end
-  return setmetatable(ctype, mt)
-end
+local ctype = require 'ctype'
 
 do
   -- local dir = debug.getinfo(1).source:match('@(.*/)') or ''
@@ -18,34 +8,6 @@ end
 
 local libuv = ffi.load('uv')
 local libuv2 = ffi.load('uv2')
-
-function echo_read(stream, nread, buf_base, buf_len)
-  if nread >= 0 then
-    local buffer = ffi.string(buf_base, nread)
-    print('read ' .. tonumber(nread) .. ' bytes: ', (string.format('%q', buffer):gsub('\\\n', '\\n')))
-  else
-    stream:close()
-    print('connection closed')
-  end
-end
-
-function on_new_connection(server, status)
-  if tonumber(status) == -1 then
-    print('error status')
-    return
-  end
-
-  print('client connected')
-
-  local client = server.loop:tcp()
-
-  if server:accept(client) then
-    client:read(echo_read)
-  else
-    print('accept failed')
-    client:close()
-  end
-end
 
 --------------------------------------------------------------------------------
 -- Loop
@@ -102,14 +64,11 @@ function Tcp:close()
 end
 
 --------------------------------------------------------------------------------
--- main
+-- uv
 --------------------------------------------------------------------------------
 
-local loop = libuv.uv_default_loop();
+local uv = {}
 
-local server = loop:tcp()
-server:bind("0.0.0.0", 7000)
-server:listen(on_new_connection)
+uv.default_loop = libuv.uv_default_loop
 
-print('running event loop')
-return loop:run()
+return uv
