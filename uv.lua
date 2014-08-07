@@ -1,3 +1,4 @@
+require 'strict'
 local ffi = require 'ffi'
 
 local function ctype(name, destructor)
@@ -23,6 +24,7 @@ function echo_read(stream, nread, buf_base, buf_len)
     local buffer = ffi.string(buf_base, nread)
     print('read ' .. tonumber(nread) .. ' bytes: ', (string.format('%q', buffer):gsub('\\\n', '\\n')))
   else
+    stream:close()
     print('connection closed')
   end
 end
