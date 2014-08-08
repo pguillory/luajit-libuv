@@ -4,13 +4,11 @@ uv.run(function()
   local server = uv.tcp()
   server:bind('0.0.0.0', 7000)
   server:listen(function(client)
-    print('connected: ', client)
-    local s = ''
+    local s = 'Type "quit" to disconnect, or anything else to get an echo.\n'
     repeat
-      -- print(s)
       client:write(s)
       s = client:read()
-    until s:sub(1, 4) == 'quit'
+    until s:find('quit')
     client:close()
   end)
 end)

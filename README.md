@@ -30,9 +30,11 @@ Installation
 ------------
 
 ```bash
+brew install libuv
 git clone git@github.com:pguillory/luajit-libuv.git
 cd luajit-libuv
 make
+LUA_PATH="src/?.lua;;" luajit examples/read_file.lua 
 ```
 
 There's no `make install` yet.
