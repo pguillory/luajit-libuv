@@ -66,24 +66,26 @@ Fs.open = async.func(function(yield, callback, self, path)
 end)
 
 Fs.read = async.func(function(yield, callback, self)
-  -- local req = ffi.new('uv_fs_t')
+  local req = ffi.new('uv_fs_t')
   local buf = ffi.new('char[?]', 4096)
-  -- print('reading file ', self.result)
-  local descriptor = self.result
-  libuv.uv_fs_read(self.loop, self, descriptor, buf, 4096, -1, callback);
-  yield(self)
-  local nread = tonumber(self.result)
-  self.result = descriptor
-  -- print('result now: ', self.result)
+  libuv.uv_fs_read(self.loop, req, self.result, buf, 4096, -1, callback)
+  yield(req)
+  local nread = tonumber(req.result)
   if nread < 0 then
-    return error('error reading file: ' .. tonumber(self.errorno))
-  else
-    return ffi.string(buf, nread)
+    error('error closing file: ' .. tonumber(req.errorno))
   end
+  return ffi.string(buf, nread)
 end)
 
-function Fs:close()
-end
+Fs.close = async.func(function(yield, callback, self)
+  local req = ffi.new('uv_fs_t')
+  libuv.uv_fs_close(self.loop, req, self.result, callback)
+  yield(req)
+  local status = tonumber(req.result)
+  if status < 0 then
+    error('error closing file: ' .. tonumber(req.errorno))
+  end
+end)
 
 --------------------------------------------------------------------------------
 -- Timer

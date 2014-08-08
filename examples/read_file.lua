@@ -1,7 +1,4 @@
-require 'strict'
-local ffi = require 'ffi'
 local uv = require 'uv'
-
 local this_file = debug.getinfo(1).source:sub(2)
 
 uv.run(function()

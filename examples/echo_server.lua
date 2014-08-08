@@ -1,5 +1,3 @@
-require 'strict'
-local ffi = require 'ffi'
 local uv = require 'uv'
 
 uv.run(function()
