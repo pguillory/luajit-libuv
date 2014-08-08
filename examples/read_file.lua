@@ -2,10 +2,11 @@ local uv = require 'uv'
 local this_file = debug.getinfo(1).source:sub(2)
 
 uv.run(function()
-  local file = uv.fs():open(this_file)
+  local fs = uv.fs()
+  local file = fs:open(this_file)
   repeat
-    local chunk = file:read()
+    local chunk = fs:read(file)
     io.write(chunk)
   until chunk == ''
-  file:close()
+  fs:close(file)
 end)
