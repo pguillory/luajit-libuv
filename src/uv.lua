@@ -25,7 +25,7 @@ local Loop = ctype('uv_loop_t')
 
 function Loop:assert(r)
   if tonumber(r) ~= 0 then
-    error(libuv.uv_err_name(libuv.uv_last_error(self)))
+    error(self:last_error())
   end
 end
 
@@ -49,6 +49,11 @@ function Loop:timer()
   local timer = ffi.new('uv_timer_t')
   libuv.uv_timer_init(self, timer)
   return timer
+end
+
+function Loop:last_error()
+  local error = libuv.uv_last_error(self)
+  return ffi.string(libuv.uv_err_name(error)) .. ': ' .. ffi.string(libuv.uv_strerror(error))
 end
 
 --------------------------------------------------------------------------------
@@ -112,6 +117,10 @@ do
   assert(err:find('unexpected mode type: boolean'))
 end
 
+--------------------------------------------------------------------------------
+-- flags_atoi
+--------------------------------------------------------------------------------
+
 local flags_atoi = setmetatable({}, { __index = function(self, s)
   assert(type(s) == 'number', 'file flags should be "r", "w", "a", "r+", "w+", "a+", or a number')
   self[s] = s
@@ -153,7 +162,7 @@ Fs.open = async.func(function(yield, callback, self, path, flags, mode)
   yield(self)
   local descriptor = tonumber(self.result)
   if descriptor < 0 then
-    return error('error opening file: ' .. tonumber(self.errorno))
+    error(self.loop:last_error())
   end
   -- print('opened file ', descriptor)
   -- libuv.uv_fs_req_cleanup(self)
@@ -167,7 +176,7 @@ Fs.read = async.func(function(yield, callback, self, file)
   yield(self)
   local nread = tonumber(self.result)
   if nread < 0 then
-    error('error reading file: ' .. tonumber(self.errorno))
+    error(self.loop:last_error())
   end
   ffi.C.free(buf)
   return ffi.string(buf, nread)
@@ -178,7 +187,7 @@ Fs.close = async.func(function(yield, callback, self, file)
   yield(self)
   local status = tonumber(self.result)
   if status < 0 then
-    error('error closing file: ' .. tonumber(self.errorno))
+    error(self.loop:last_error())
   end
 end)
 
@@ -189,7 +198,7 @@ Fs.unlink = async.func(function(yield, callback, self, path)
   yield(self)
   local status = tonumber(self.result)
   if status < 0 then
-    error('error unlinking file: ' .. tonumber(self.errorno))
+    error(self.loop:last_error())
   end
 end)
 
@@ -200,7 +209,7 @@ Fs.write = async.func(function(yield, callback, self, buffer)
   yield(self)
   local status = tonumber(self.result)
   if status < 0 then
-    error('error writing file: ' .. tonumber(self.errorno))
+    error(self.loop:last_error())
   end
 end)
 
@@ -208,11 +217,12 @@ end)
 
 Fs.mkdir = async.func(function(yield, callback, self, path, mode)
   local mode = mode_atoi[mode or '700']
+  assert(self.loop, 'no loop!')
   self.loop:assert(libuv.uv_fs_mkdir(self.loop, self, path, mode, callback))
   yield(self)
   local status = tonumber(self.result)
   if status < 0 then
-    error('error making directory: ' .. tonumber(self.errorno))
+    error(self.loop:last_error())
   end
 end)
 
@@ -223,7 +233,7 @@ Fs.rmdir = async.func(function(yield, callback, self, path)
   yield(self)
   local status = tonumber(self.result)
   if status < 0 then
-    error('error removing directory: ' .. tonumber(self.errorno))
+    error(self.loop:last_error())
   end
 end)
 
@@ -273,13 +283,13 @@ Tcp.write = async.func(function(yield, callback, self, content)
   buf.base = ffi.cast('char*', content)
   buf.len = #content
   -- local buf = libuv.uv_buf_init(s, #s)
-  assert(0 == tonumber(libuv.uv_write(req, ffi.cast('uv_stream_t*', self), buf, 1, callback)))
+  self.loop:assert(libuv.uv_write(req, ffi.cast('uv_stream_t*', self), buf, 1, callback))
   local status = yield(req)
   if tonumber(status) ~= 0 then
-    print('write error: ', libuv.uv_err_name(status), libuv.uv_strerror(status))
     if not self:is_closing() then
       self:close()
     end
+    error(self.loop:last_error())
     -- if not libuv.uv_is_closing(ffi.cast('uv_handle_t*', self.handle)) then
     --   libuv.uv_close((uv_handle_t*) req->handle, on_close)
     -- end
