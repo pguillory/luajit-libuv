@@ -56,17 +56,17 @@ function Loop:tcp()
   return tcp
 end
 
+function Loop:fs()
+  local fs = ffi.new('uv_fs_t')
+  fs.loop = self
+  return fs
+end
+
 function Loop:timer()
   local timer = ffi.new('uv_timer_t')
   libuv.uv_timer_init(self, timer)
   return timer
 end
-
--- function Loop:fs_open(path, flags, mode, cb)
---   local fs = ffi.new('uv_fs_t')
---   libuv.uv_fs_open(self, fs, argv[1], O_RDONLY, 0, on_open)
---   return server
--- end
 
 --------------------------------------------------------------------------------
 -- Fs
@@ -74,8 +74,37 @@ end
 
 local Fs = ctype('uv_fs_t')
 
-function Fs:id()
-  return tostring(self):sub(-8)
+Fs.open = async(function(yield, callback, self, path)
+  libuv.uv_fs_open(self.loop, self, path, 0, 0, callback)
+  yield(self)
+  local descriptor = tonumber(self.result)
+  if descriptor < 0 then
+    return error('error opening file: ' .. tonumber(self.errorno))
+  end
+  -- print('opened file ', descriptor)
+  -- libuv.uv_fs_req_cleanup(self)
+  -- return File(descriptor)
+  return self
+end)
+
+Fs.read = async(function(yield, callback, self)
+  -- local req = ffi.new('uv_fs_t')
+  local buf = ffi.new('char[?]', 4096)
+  -- print('reading file ', self.result)
+  local descriptor = self.result
+  libuv.uv_fs_read(self.loop, self, descriptor, buf, 4096, -1, callback);
+  yield(self)
+  local nread = tonumber(self.result)
+  self.result = descriptor
+  -- print('result now: ', self.result)
+  if nread < 0 then
+    return error('error reading file: ' .. tonumber(self.errorno))
+  else
+    return ffi.string(buf, nread)
+  end
+end)
+
+function Fs:close()
 end
 
 --------------------------------------------------------------------------------
@@ -85,7 +114,7 @@ end
 local Timer = ctype('uv_timer_t')
 
 function Timer:start(callback, timeout, repeat_time)
-  return self.loop:assert(libuv.uv_timer_start(self, callback, timeout, repeat_time))
+  return self.loop:assert(libuv.uv_timer_start(self, callback, timeout or 0, repeat_time or 0))
 end
 
 --------------------------------------------------------------------------------
@@ -93,27 +122,6 @@ end
 --------------------------------------------------------------------------------
 
 local Stream = ctype('uv_stream_t')
-
--- function Stream:read()
---   return 'asdf'
--- end
-
--- function Tcp:read(on_read)
---   libuv2.lua_uv_read_start(ffi.cast('uv_stream_t*', self), libuv2.lua_uv_alloc, on_read)
--- end
-
--- File.read = async(function(yield, callback, self)
---   local req = ffi.new('uv_fs_t')
---   local buf = ffi.new('char[?]', 4096)
---   libuv.uv_fs_read(uv.default_loop(), req, self.descriptor, buf, 4096, -1, callback);
---   yield(req)
---   local nread = tonumber(req.result)
---   if nread < 0 then
---     return error('error opening file: ' .. tonumber(req.errorno))
---   else
---     return ffi.string(buf, nread)
---   end
--- end)
 
 function Stream:accept(client)
   return 0 == tonumber(libuv.uv_accept(self, ffi.cast('uv_stream_t*', client)))
@@ -197,78 +205,22 @@ end
 
 local uv = {}
 
-uv.default_loop = libuv.uv_default_loop
-
 function uv.run(main)
   local thread = coroutine.create(main)
-  local loop = uv.default_loop()
+  local loop = libuv.uv_default_loop()
   local timer = loop:timer()
-  local function run_init()
+  timer:start(function()
     assert(coroutine.resume(thread))
-  end
-  timer:start(run_init, 0, 0)
+  end)
   loop:run()
 end
 
-local File = class(function(descriptor)
-  return { descriptor = descriptor }
-end)
+function uv.fs()
+  return libuv.uv_default_loop():fs()
+end
 
-uv.open = async(function(yield, callback, path)
-  local req = ffi.new('uv_fs_t')
-  libuv.uv_fs_open(uv.default_loop(), req, path, 0, 0, callback)
-  yield(req)
-  local descriptor = tonumber(req.result)
-  if descriptor < 0 then
-    return error('error opening file: ' .. tonumber(req.errorno))
-  end
-  libuv.uv_fs_req_cleanup(req)
-  return File(descriptor)
-end)
-
-File.read = async(function(yield, callback, self)
-  local req = ffi.new('uv_fs_t')
-  local buf = ffi.new('char[?]', 4096)
-  libuv.uv_fs_read(uv.default_loop(), req, self.descriptor, buf, 4096, -1, callback);
-  yield(req)
-  local nread = tonumber(req.result)
-  if nread < 0 then
-    return error('error opening file: ' .. tonumber(req.errorno))
-  else
-    return ffi.string(buf, nread)
-  end
-end)
-
--- function on_read(stream, nread, buf_base, buf_len)
---   if nread >= 0 then
---     local buffer = ffi.string(buf_base, nread)
---     print('read ' .. tonumber(nread) .. ' bytes: ', (string.format('%q', buffer):gsub('\\\n', '\\n')))
---   else
---     stream:close()
---     print('connection closed')
---   end
--- end
--- 
--- function on_connect(server, status)
---   if tonumber(status) == -1 then
---     print('error status')
---     return
---   end
--- 
---   print('client connected')
--- 
---   local client = server.loop:tcp()
--- 
---   if server:accept(client) then
---     client:read(on_read)
---   else
---     print('accept failed')
---     client:close()
---   end
--- end
-
-uv.tcp = function()
-  return uv.default_loop():tcp()
+function uv.tcp()
+  return libuv.uv_default_loop():tcp()
 end
 
 return uv
