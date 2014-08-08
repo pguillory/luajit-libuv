@@ -17,12 +17,13 @@ Usage
 local uv = require 'uv'
 
 uv.run(function()
-  local file = uv.fs():open('README.md')
+  local fs = uv.fs()
+  local file = fs:open('README.md')
   repeat
-    local chunk = file:read()
-    print(chunk)
+    local chunk = fs:read(file)
+    io.write(chunk)
   until chunk == ''
-  file:close()
+  fs:close(file)
 end)
 ```
 
@@ -30,14 +31,18 @@ Installation
 ------------
 
 ```bash
+# First, libuv needs to be installed on the system.
 brew install libuv
+
+# Now let's check out the repo.
 git clone git@github.com:pguillory/luajit-libuv.git
 cd luajit-libuv
 make
-LUA_PATH="src/?.lua;;" luajit examples/read_file.lua 
-```
 
-There's no `make install` yet.
+# To run an example:
+export LUA_PATH="src/?.lua;;"
+luajit examples/read_file.lua 
+```
 
 [Luajit FFI]: http://luajit.org/ext_ffi.html
 [libuv]: https://github.com/joyent/libuv
