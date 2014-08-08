@@ -26,6 +26,17 @@ uv.run(function()
 end)
 ```
 
+Installation
+------------
+
+```bash
+git clone git@github.com:pguillory/luajit-libuv.git
+cd luajit-libuv
+make
+```
+
+There's no `make install` yet.
+
 [Luajit FFI]: http://luajit.org/ext_ffi.html
 [libuv]: https://github.com/joyent/libuv
 [Node.js]: http://nodejs.org/
