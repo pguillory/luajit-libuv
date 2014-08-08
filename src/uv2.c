@@ -1,6 +1,18 @@
 #include <stdlib.h>
 #include "uv2.h"
 
+// Luajit's FFI does not handle callbacks with a pass-by-value struct as an
+// argument or return value. There are two libuv callback types for which this
+// causes problems, and they have two different workarounds.
+// 
+// * For uv_read_cb, we create an alternative callback type that accepts the
+//   uv_buf_t's `base` and `size` fields as two separate arguments. Then we use a
+//   wrapper to store and retrieve our custom callback from the req's `data`
+//   field.
+// 
+// * For uv_alloc_cb, we give up the implied generality and pass a generic
+//   allocator that uses malloc.
+
 void lua_uv_read(uv_stream_t* stream, ssize_t nread, uv_buf_t buf) {
   lua_uv_read_cb read_cb = (lua_uv_read_cb) stream->data;
   read_cb(stream, nread, buf.base, buf.len);
