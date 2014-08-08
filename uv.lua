@@ -1,5 +1,6 @@
 require 'strict'
 local ffi = require 'ffi'
+local async = require 'async'
 local class = require 'class'
 local ctype = require 'ctype'
 
@@ -10,29 +11,6 @@ end
 
 local libuv = ffi.load('uv')
 local libuv2 = ffi.load('uv2')
-
-function async(func)
-  local threads = {}
-  local function yield(req)
-    local id = tostring(req):sub(-8)
-    -- print('callback ', req, id)
-    threads[id] = assert(coroutine.running(), 'not in a coroutine')
-    return coroutine.yield()
-  end
-  local function callback(req, ...)
-    local id = tostring(req):sub(-8)
-    -- print('callback ', req, id)
-    local thread = threads[id]
-    if not thread then
-      error('thread not found: ' .. id .. ' -- ' .. tostring(req))
-    end
-    threads[id] = nil
-    return assert(coroutine.resume(thread, ...))
-  end
-  return function(...)
-    return func(yield, callback, ...)
-  end
-end
 
 --------------------------------------------------------------------------------
 -- Loop
@@ -74,7 +52,7 @@ end
 
 local Fs = ctype('uv_fs_t')
 
-Fs.open = async(function(yield, callback, self, path)
+Fs.open = async.func(function(yield, callback, self, path)
   libuv.uv_fs_open(self.loop, self, path, 0, 0, callback)
   yield(self)
   local descriptor = tonumber(self.result)
@@ -87,7 +65,7 @@ Fs.open = async(function(yield, callback, self, path)
   return self
 end)
 
-Fs.read = async(function(yield, callback, self)
+Fs.read = async.func(function(yield, callback, self)
   -- local req = ffi.new('uv_fs_t')
   local buf = ffi.new('char[?]', 4096)
   -- print('reading file ', self.result)
@@ -137,14 +115,14 @@ function Tcp:bind(ip, port)
   libuv.uv_tcp_bind(self, libuv.uv_ip4_addr(ip, port))
 end
 
-Tcp.read = async(function(yield, callback, self)
+Tcp.read = async.func(function(yield, callback, self)
   libuv2.lua_uv_read_start(ffi.cast('uv_stream_t*', self), libuv2.lua_uv_alloc, callback)
   local nread, buf_base, buf_len = yield(self)
   libuv.uv_read_stop(ffi.cast('uv_stream_t*', self))
   return ffi.string(buf_base, nread)
 end)
 
-Tcp.write = async(function(yield, callback, self, content)
+Tcp.write = async.func(function(yield, callback, self, content)
   local req = ffi.new('uv_write_t')
   local buf = ffi.new('uv_buf_t')
   buf.base = ffi.cast('char*', content)
@@ -165,35 +143,19 @@ Tcp.write = async(function(yield, callback, self, content)
   -- ffi.C.free(buf)
 end)
 
-local tcp_on_connect_callbacks = {}
-
-local function tcp_on_connect(tcp, status)
-  return assert(pcall(function()
-    if tonumber(status) == -1 then
-      print('error status')
-      return
+Tcp.listen = async.server(function(callback, self, on_connect)
+  self.loop:assert(libuv.uv_listen(ffi.cast('uv_stream_t*', self), 128, callback))
+  return self, function(self, status)
+    if tonumber(status) >= 0 then
+      local client = self.loop:tcp()
+      if self:accept(client) then
+        on_connect(client)
+      else
+        client:close()
+      end
     end
-
-    local client = tcp.loop:tcp()
-
-    if tcp:accept(client) then
-      local callback = tcp_on_connect_callbacks[tonumber(ffi.cast('int', tcp.data))]
-      -- ffi.cast('uv_connection_cb', tcp.data)
-      local thread = coroutine.create(callback)
-      return assert(coroutine.resume(thread, client))
-    else
-      print('accept failed')
-      client:close()
-    end
-  end))
-end
-
-function Tcp:listen(callback)
-  table.insert(tcp_on_connect_callbacks, callback)
-  self.data = ffi.cast('void*', #tcp_on_connect_callbacks)
-  -- ffi.cast('uv_connection_cb', callback)
-  self.loop:assert(libuv.uv_listen(ffi.cast('uv_stream_t*', self), 128, tcp_on_connect))
-end
+  end
+end)
 
 function Tcp:close()
   libuv.uv_close(ffi.cast('uv_handle_t*', self), nil)
