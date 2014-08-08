@@ -120,64 +120,11 @@ local File = class(function(descriptor)
   return { descriptor = descriptor }
 end)
 
-function File:__tostring()
-  return '<File ' .. self.descriptor .. '>'
-end
-
--- UV_EXTERN int uv_fs_read(uv_loop_t* loop, uv_fs_t* req, uv_file file,
---     void* buf, size_t length, int64_t offset, uv_fs_cb cb);
-
--- local threads = {}
-
--- local function on_read(req)
---   local thread = assert(threads[req:id()], 'thread not found')
---   local nread = tonumber(req.result)
---   if nread < 0 then
---     return coroutine.resume(thread, nil, 'error opening file: ' .. tonumber(req.errorno))
---   end
---   if nread == 0 then
---     -- EOF
---   end
--- 
---   return coroutine.resume(thread, true, File(descriptor))
--- end
--- 
--- function File:read()
---   local buf = ffi.new('char[?]', 4096)
---   local req = ffi.new('uv_fs_t')
---   threads[req_id] = assert(coroutine.running())
---   uv_fs_read(uv.default_loop(), req, self.descriptor, buf, 4096, -1, on_read);
---   local ok, content = assert(coroutine.yield())
---   threads[req_id] = nil
---   libuv.uv_fs_req_cleanup(req)
---   return content
--- end
-
--- local function on_open(req)
---   local thread = assert(threads[req:id()], 'thread not found')
---   local descriptor = tonumber(req.result)
---   if descriptor < 0 then
---     return coroutine.resume(thread, nil, 'error opening file: ' .. tonumber(req.errorno))
---   end
---   return coroutine.resume(thread, true, File(descriptor))
--- end
--- 
--- function uv.open(path)
---   local req = ffi.new('uv_fs_t')
---   local req_id = req:id()
---   threads[req_id] = assert(coroutine.running())
---   libuv.uv_fs_open(uv.default_loop(), req, path, 0, 0, on_open)
---   local ok, file = assert(coroutine.yield())
---   threads[req_id] = nil
---   libuv.uv_fs_req_cleanup(req)
---   return file
--- end
-
-function async(before)
+function async(func)
   local threads = {}
   local function yield(req)
     local id = req:id()
-    threads[id] = assert(coroutine.running())
+    threads[id] = assert(coroutine.running(), 'not in a coroutine')
     coroutine.yield()
   end
   local function callback(req)
@@ -187,7 +134,7 @@ function async(before)
     return assert(coroutine.resume(thread))
   end
   return function(...)
-    return before(yield, callback, ...)
+    return func(yield, callback, ...)
   end
 end
 
@@ -203,30 +150,6 @@ uv.open = async(function(yield, callback, path)
   return File(descriptor)
 end)
 
--- local function on_read(req)
---   local thread = assert(threads[req:id()], 'thread not found')
---   local nread = tonumber(req.result)
---   if nread < 0 then
---     return coroutine.resume(thread, nil, 'error opening file: ' .. tonumber(req.errorno))
---   end
---   if nread == 0 then
---     -- EOF
---   end
--- 
---   return coroutine.resume(thread, true, File(descriptor))
--- end
--- 
--- function File:read()
---   local buf = ffi.new('char[?]', 4096)
---   local req = ffi.new('uv_fs_t')
---   threads[req_id] = assert(coroutine.running())
---   uv_fs_read(uv.default_loop(), req, self.descriptor, buf, 4096, -1, on_read);
---   local ok, content = assert(coroutine.yield())
---   threads[req_id] = nil
---   libuv.uv_fs_req_cleanup(req)
---   return content
--- end
-
 File.read = async(function(yield, callback, self)
   local req = ffi.new('uv_fs_t')
   local buf = ffi.new('char[?]', 4096)
@@ -234,22 +157,10 @@ File.read = async(function(yield, callback, self)
   yield(req)
   local nread = tonumber(req.result)
   if nread < 0 then
-    error('error opening file: ' .. tonumber(req.errorno))
-  elseif nread == 0 then
-    -- EOF
-    return ''
+    return error('error opening file: ' .. tonumber(req.errorno))
   else
     return ffi.string(buf, nread)
   end
 end)
-
---   local req_id = req:id()
---   libuv.uv_fs_open(uv.default_loop(), req, path, 0, 0, on_open)
---   threads[req_id] = assert(coroutine.running())
---   local ok, file = assert(coroutine.yield())
---   threads[req_id] = nil
---   libuv.uv_fs_req_cleanup(req)
---   return file
--- end
 
 return uv
