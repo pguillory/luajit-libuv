@@ -1,4 +1,3 @@
-require 'strict'
 local ffi = require 'ffi'
 local async = require 'async'
 local class = require 'class'
@@ -60,21 +59,28 @@ end
 -- mode_atoi
 --------------------------------------------------------------------------------
 
+local function octal(s)
+  local i = 0
+  for c in s:gmatch('.') do
+    i = i * 8 + tonumber(c)
+  end
+  return i
+end
+
+do
+  assert(octal('0') == 0)
+  assert(octal('1') == 1)
+  assert(octal('10') == 8)
+  assert(octal('11') == 9)
+  assert(octal('100') == 64)
+  assert(octal('101') == 65)
+end
+
 local mode_atoi = setmetatable({}, { __index = function(self, s)
   local i
   if type(s) == 'string' then
     if #s == 3 then
-      i = 0
-      local function digit_value(index, value)
-        local digit = tonumber(s:sub(index, index))
-        if digit < 0 or digit > 7 then
-          error('file modes look like: "755" or "rwxr-xr-x"')
-        end
-        i = i + digit * value
-      end
-      digit_value(1, 64)
-      digit_value(2, 8)
-      digit_value(3, 1)
+      i = octal(s)
     elseif #s == 9 then
       i = 0
       local function match_char(index, expected_char, n)
@@ -107,14 +113,31 @@ local mode_atoi = setmetatable({}, { __index = function(self, s)
 end})
 
 do
-  assert((7 * 64) + (5 * 8) + (5 * 1) == 493)
-  assert(mode_atoi['755'] == 493)
-  assert(mode_atoi['rwxr-xr-x'] == 493)
-  local ok, err = pcall(function()
-    return mode_atoi[true]
-  end)
-  assert(not ok)
-  assert(err:find('unexpected mode type: boolean'))
+  assert(mode_atoi['001'] == 1)
+  assert(mode_atoi['007'] == 7)
+  assert(mode_atoi['070'] == 7 * 8)
+  assert(mode_atoi['700'] == 7 * 64)
+  assert(mode_atoi['777'] == 511)
+
+  assert(mode_atoi['--------x'] == 1)
+  assert(mode_atoi['-------w-'] == 2)
+  assert(mode_atoi['------r--'] == 4)
+  assert(mode_atoi['-----x---'] == 8)
+  assert(mode_atoi['----w----'] == 16)
+  assert(mode_atoi['---r-----'] == 32)
+  assert(mode_atoi['--x------'] == 64)
+  assert(mode_atoi['-w-------'] == 128)
+  assert(mode_atoi['r--------'] == 256)
+  assert(mode_atoi['rwxrwxrwx'] == 511)
+
+  assert(mode_atoi[1] == 1)
+  assert(mode_atoi[511] == 511)
+
+  do
+    local ok, err = pcall(function() return mode_atoi[true] end)
+    assert(not ok)
+    assert(err:find('unexpected mode type: boolean'))
+  end
 end
 
 --------------------------------------------------------------------------------
@@ -142,11 +165,11 @@ do
   local O_EXCL      = 0x0800    -- error if already exists
 
   flags_atoi['r'] = O_RDONLY
-  flags_atoi['w'] = O_WRONLY + O_CREAT
-  flags_atoi['a'] = O_RDWR
-  flags_atoi['r+'] = O_RDONLY
-  flags_atoi['w+'] = O_WRONLY
-  flags_atoi['a+'] = O_RDWR
+  flags_atoi['w'] = O_WRONLY + O_CREAT + O_TRUNC
+  flags_atoi['a'] = O_WRONLY + O_CREAT + O_APPEND
+  flags_atoi['r+'] = O_RDWR
+  flags_atoi['w+'] = O_RDWR + O_CREAT + O_TRUNC
+  flags_atoi['a+'] = O_RDWR + O_CREAT + O_APPEND
 end
 
 --------------------------------------------------------------------------------
@@ -164,9 +187,7 @@ Fs.open = async.func(function(yield, callback, self, path, flags, mode)
   if descriptor < 0 then
     error(self.loop:last_error())
   end
-  -- print('opened file ', descriptor)
-  -- libuv.uv_fs_req_cleanup(self)
-  -- return File(descriptor)
+  libuv.uv_fs_req_cleanup(self)
   return descriptor
 end)
 
@@ -178,8 +199,10 @@ Fs.read = async.func(function(yield, callback, self, file)
   if nread < 0 then
     error(self.loop:last_error())
   end
+  local chunk = ffi.string(buf, nread)
   ffi.C.free(buf)
-  return ffi.string(buf, nread)
+  libuv.uv_fs_req_cleanup(self)
+  return chunk
 end)
 
 Fs.close = async.func(function(yield, callback, self, file)
@@ -189,6 +212,7 @@ Fs.close = async.func(function(yield, callback, self, file)
   if status < 0 then
     error(self.loop:last_error())
   end
+  libuv.uv_fs_req_cleanup(self)
 end)
 
 -- int uv_fs_unlink(uv_loop_t* loop, uv_fs_t* req, const char* path, uv_fs_cb cb);
@@ -200,17 +224,19 @@ Fs.unlink = async.func(function(yield, callback, self, path)
   if status < 0 then
     error(self.loop:last_error())
   end
+  libuv.uv_fs_req_cleanup(self)
 end)
 
 -- int uv_fs_write(uv_loop_t* loop, uv_fs_t* req, uv_file file, void* buf, size_t length, int64_t offset, uv_fs_cb cb);
 
-Fs.write = async.func(function(yield, callback, self, buffer)
-  self.loop:assert(libuv.uv_fs_write(self.loop, self, self.result, buffer, #buffer, -1, callback))
+Fs.write = async.func(function(yield, callback, self, file, buffer)
+  self.loop:assert(libuv.uv_fs_write(self.loop, self, file, ffi.cast('void*', buffer), #buffer, -1, callback))
   yield(self)
   local status = tonumber(self.result)
   if status < 0 then
     error(self.loop:last_error())
   end
+  libuv.uv_fs_req_cleanup(self)
 end)
 
 -- int uv_fs_mkdir(uv_loop_t* loop, uv_fs_t* req, const char* path, int mode, uv_fs_cb cb);
@@ -224,6 +250,7 @@ Fs.mkdir = async.func(function(yield, callback, self, path, mode)
   if status < 0 then
     error(self.loop:last_error())
   end
+  libuv.uv_fs_req_cleanup(self)
 end)
 
 -- int uv_fs_rmdir(uv_loop_t* loop, uv_fs_t* req, const char* path, uv_fs_cb cb);
@@ -235,9 +262,130 @@ Fs.rmdir = async.func(function(yield, callback, self, path)
   if status < 0 then
     error(self.loop:last_error())
   end
+  libuv.uv_fs_req_cleanup(self)
 end)
 
+-- int uv_fs_chmod(uv_loop_t* loop, uv_fs_t* req, const char* path, int mode, uv_fs_cb cb);
 
+Fs.chmod = async.func(function(yield, callback, self, path, mode)
+  local mode = mode_atoi[mode or '700']
+  self.loop:assert(libuv.uv_fs_chmod(self.loop, self, path, mode, callback))
+  yield(self)
+  local status = tonumber(self.result)
+  if status < 0 then
+    error(self.loop:last_error())
+  end
+  libuv.uv_fs_req_cleanup(self)
+end)
+
+-- int uv_fs_stat(uv_loop_t* loop, uv_fs_t* req, const char* path, uv_fs_cb cb);
+
+Fs.stat = async.func(function(yield, callback, self, path)
+  self.loop:assert(libuv.uv_fs_stat(self.loop, self, path, callback))
+  yield(self)
+  local status = tonumber(self.result)
+  if status < 0 then
+    error(self.loop:last_error())
+  end
+  local stat = ffi.cast('uv_statbuf_t*', self.ptr)
+  libuv.uv_fs_req_cleanup(self)
+  return stat
+end)
+
+-- int uv_fs_fstat(uv_loop_t* loop, uv_fs_t* req, uv_file file, uv_fs_cb cb);
+
+Fs.fstat = async.func(function(yield, callback, self, path)
+  self.loop:assert(libuv.uv_fs_fstat(self.loop, self, path, callback))
+  yield(self)
+  local status = tonumber(self.result)
+  if status < 0 then
+    error(self.loop:last_error())
+  end
+  local stat = ffi.cast('uv_statbuf_t*', self.ptr)
+  libuv.uv_fs_req_cleanup(self)
+  return stat
+end)
+
+-- int uv_fs_lstat(uv_loop_t* loop, uv_fs_t* req, const char* path, uv_fs_cb cb);
+
+Fs.lstat = async.func(function(yield, callback, self, path)
+  self.loop:assert(libuv.uv_fs_lstat(self.loop, self, path, callback))
+  yield(self)
+  local status = tonumber(self.result)
+  if status < 0 then
+    error(self.loop:last_error())
+  end
+  local stat = ffi.cast('uv_statbuf_t*', self.ptr)
+  libuv.uv_fs_req_cleanup(self)
+  return stat
+end)
+
+--------------------------------------------------------------------------------
+-- Stat
+--------------------------------------------------------------------------------
+
+local Stat = ctype('uv_statbuf_t')
+
+local S_IFMT		 = octal('0170000')  -- [XSI] type of file mask
+local S_IFIFO		 = octal('0010000')  -- [XSI] named pipe (fifo)
+local S_IFCHR		 = octal('0020000')  -- [XSI] character special
+local S_IFDIR		 = octal('0040000')  -- [XSI] directory
+local S_IFBLK		 = octal('0060000')  -- [XSI] block special
+local S_IFREG		 = octal('0100000')  -- [XSI] regular
+local S_IFLNK		 = octal('0120000')  -- [XSI] symbolic link
+local S_IFSOCK	 = octal('0140000')  -- [XSI] socket
+
+function Stat:uid()
+  return self.st_uid
+end
+
+function Stat:size()
+  return self.st_size
+end
+
+function Stat:access()
+  return bit.band(self.st_mode, bit.bnot(S_IFMT))
+end
+
+function Stat:is_dir()
+  return bit.band(self.st_mode, S_IFDIR) > 0
+end
+
+function Stat:is_fifo()
+  return bit.band(self.st_mode, S_IFIFO) > 0
+end
+
+-- dev_t    st_dev;     /* [XSI] ID of device containing file */ \
+-- mode_t   st_mode;    /* [XSI] Mode of file (see below) */ \
+-- nlink_t    st_nlink;   /* [XSI] Number of hard links */ \
+-- __darwin_ino64_t st_ino;   /* [XSI] File serial number */ \
+-- uid_t    st_uid;     /* [XSI] User ID of the file */ \
+-- gid_t    st_gid;     /* [XSI] Group ID of the file */ \
+-- dev_t    st_rdev;    /* [XSI] Device ID */ \
+
+-- -- darwin
+-- struct timespec st_atimespec;    /* time of last access */ \
+-- struct timespec st_mtimespec;    /* time of last data modification */ \
+-- struct timespec st_ctimespec;    /* time of last status change */ \
+-- struct timespec st_birthtimespec;  /* time of file creation(birth) */
+-- 
+-- -- posix
+-- time_t   st_atime;   /* [XSI] Time of last access */ \
+-- long   st_atimensec;   /* nsec of last access */ \
+-- time_t   st_mtime;   /* [XSI] Last data modification time */ \
+-- long   st_mtimensec;   /* last data modification nsec */ \
+-- time_t   st_ctime;   /* [XSI] Time of last status change */ \
+-- long   st_ctimensec;   /* nsec of last status change */ \
+-- time_t   st_birthtime;   /*  File creation time(birth)  */ \
+-- long   st_birthtimensec; /* nsec of File creation time */
+
+-- off_t    st_size;    /* [XSI] file size, in bytes */ \
+-- blkcnt_t st_blocks;    /* [XSI] blocks allocated for file */ \
+-- blksize_t  st_blksize;   /* [XSI] optimal blocksize for I/O */ \
+-- __uint32_t st_flags;   /* user defined flags for file */ \
+-- __uint32_t st_gen;     /* file generation number */ \
+-- __int32_t  st_lspare;    /* RESERVED: DO NOT USE! */ \
+-- __int64_t  st_qspare[2];   /* RESERVED: DO NOT USE! */ \
 
 
 --------------------------------------------------------------------------------
