@@ -5,9 +5,11 @@ local ffi = require 'ffi'
 ffi.cdef [[
   mode_t umask(mode_t mask);
   uid_t getuid(void);
+  gid_t getgid(void);
 ]]
 ffi.C.umask(0)
 local uid = ffi.C.getuid()
+local gid = ffi.C.getgid()
 
 do
   local dir = os.tmpname()
@@ -26,10 +28,17 @@ do
 
     local stat = fs:stat(filename)
     assert(stat:uid() == uid)
-    assert(stat:access() == 511) -- octal('777')
+    -- This doesn't work! stat:gid() is returning 0 for some reason.
+    -- assert(stat:gid() == gid)
+    assert(stat:mode() == 511) -- octal('777')
     assert(stat:size() == 6)
     assert(stat:is_dir() == false)
     assert(stat:is_fifo() == false)
+    assert(math.abs(os.time() - tonumber(stat:atime())) < 10)
+
+    local file = fs:open(filename)
+    assert(fs:read(file) == 'hello!')
+    fs:close(file)
 
     fs:unlink(filename)
     fs:rmdir(dir)

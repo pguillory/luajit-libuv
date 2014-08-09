@@ -339,11 +339,15 @@ function Stat:uid()
   return self.st_uid
 end
 
+function Stat:gid()
+  return self.st_gid
+end
+
 function Stat:size()
   return self.st_size
 end
 
-function Stat:access()
+function Stat:mode()
   return bit.band(self.st_mode, bit.bnot(S_IFMT))
 end
 
@@ -353,6 +357,30 @@ end
 
 function Stat:is_fifo()
   return bit.band(self.st_mode, S_IFIFO) > 0
+end
+
+do
+  local ok, err = pcall(function() return ffi.new('uv_statbuf_t').st_atime end)
+  if ok then
+    function Stat:atime()         return self.st_atime end
+    function Stat:atimensec()     return self.st_atimensec end
+    function Stat:mtime()         return self.st_mtime end
+    function Stat:mtimensec()     return self.st_mtimensec end
+    function Stat:ctime()         return self.st_ctime end
+    function Stat:ctimensec()     return self.st_ctimensec end
+    function Stat:birthtime()     return self.st_birthtime end
+    function Stat:birthtimensec() return self.st_birthtimensec end
+  else
+    assert(err:find('st_atime'), err)
+    function Stat:atime()         return self.st_atimespec.tv_sec end
+    function Stat:atimensec()     return self.st_atimespec.tv_nsec end
+    function Stat:mtime()         return self.st_mtimespec.tv_sec end
+    function Stat:mtimensec()     return self.st_mtimespec.tv_nsec end
+    function Stat:ctime()         return self.st_ctimespec.tv_sec end
+    function Stat:ctimensec()     return self.st_ctimespec.tv_nsec end
+    function Stat:birthtime()     return self.st_birthtimespec.tv_sec end
+    function Stat:birthtimensec() return self.st_birthtimespec.tv_nsec end
+  end
 end
 
 -- dev_t    st_dev;     /* [XSI] ID of device containing file */ \
