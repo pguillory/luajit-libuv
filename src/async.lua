@@ -31,6 +31,11 @@ end
 function async.server(func)
   local callbacks = {}
 
+  local function yield(self, callback)
+    table.insert(callbacks, callback)
+    self.data = ffi.cast('void*', #callbacks)
+  end
+
   local function callback(self, ...)
     local id = tonumber(ffi.cast('int', self.data))
     local callback = callbacks[id]
@@ -40,9 +45,7 @@ function async.server(func)
   end
 
   return function(...)
-    local self, callback = func(callback, ...)
-    table.insert(callbacks, callback)
-    self.data = ffi.cast('void*', #callbacks)
+    return func(yield, callback, ...)
   end
 end
 

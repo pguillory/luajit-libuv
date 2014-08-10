@@ -495,18 +495,18 @@ Tcp.connect = async.func(function(yield, callback, self, address, port)
   return connect
 end)
 
-Tcp.listen = async.server(function(callback, self, on_connect)
+Tcp.listen = async.server(function(yield, callback, self, on_connect)
   self.loop:assert(libuv.uv_listen(ffi.cast('uv_stream_t*', self), 128, callback))
-  return self, function(self, status)
+  yield(self, function(self, status)
     if tonumber(status) >= 0 then
       local client = self.loop:tcp()
       if self:accept(client) then
-        on_connect(ffi.cast('uv_stream_t*', client))
+        return on_connect(ffi.cast('uv_stream_t*', client))
       else
         client:close()
       end
     end
-  end
+  end)
 end)
 
 Tcp.close = async.func(function(yield, callback, self)
