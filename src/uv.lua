@@ -28,8 +28,11 @@ function Loop:assert(r)
   end
 end
 
-function Loop:run()
-  return libuv.uv_run(self, libuv.UV_RUN_DEFAULT)
+function Loop:run(callback)
+  self:timer():start(function()
+    assert(coroutine.resume(coroutine.create(callback)))
+  end)
+  libuv.uv_run(self, libuv.UV_RUN_DEFAULT)
 end
 
 function Loop:tcp()
@@ -498,14 +501,8 @@ end
 
 local uv = {}
 
-function uv.run(main)
-  local thread = coroutine.create(main)
-  local loop = libuv.uv_default_loop()
-  local timer = loop:timer()
-  timer:start(function()
-    assert(coroutine.resume(thread))
-  end)
-  loop:run()
+function uv.run(callback)
+  return libuv.uv_default_loop():run(callback)
 end
 
 function uv.fs()
