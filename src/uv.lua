@@ -281,6 +281,42 @@ Fs.chmod = async.func(function(yield, callback, self, path, mode)
   libuv.uv_fs_req_cleanup(self)
 end)
 
+-- int uv_fs_fchmod(uv_loop_t* loop, uv_fs_t* req, uv_file file, int mode, uv_fs_cb cb);
+
+Fs.fchmod = async.func(function(yield, callback, self, file, mode)
+  self.loop:assert(libuv.uv_fs_fchmod(self.loop, self, file, mode, callback))
+  yield(self)
+  local status = tonumber(self.result)
+  if status < 0 then
+    error(self.loop:last_error())
+  end
+  libuv.uv_fs_req_cleanup(self)
+end)
+
+-- int uv_fs_chown(uv_loop_t* loop, uv_fs_t* req, const char* path, uv_uid_t uid, uv_gid_t gid, uv_fs_cb cb);
+
+Fs.chown = async.func(function(yield, callback, self, path, uid, gid)
+  self.loop:assert(libuv.uv_fs_chown(self.loop, self, path, uid, gid, callback))
+  yield(self)
+  local status = tonumber(self.result)
+  if status < 0 then
+    error(self.loop:last_error())
+  end
+  libuv.uv_fs_req_cleanup(self)
+end)
+
+-- int uv_fs_fchown(uv_loop_t* loop, uv_fs_t* req, uv_file file, uv_uid_t uid, uv_gid_t gid, uv_fs_cb cb);
+
+Fs.fchown = async.func(function(yield, callback, self, file, uid, gid)
+  self.loop:assert(libuv.uv_fs_fchown(self.loop, self, file, uid, gid, callback))
+  yield(self)
+  local status = tonumber(self.result)
+  if status < 0 then
+    error(self.loop:last_error())
+  end
+  libuv.uv_fs_req_cleanup(self)
+end)
+
 -- int uv_fs_stat(uv_loop_t* loop, uv_fs_t* req, const char* path, uv_fs_cb cb);
 
 Fs.stat = async.func(function(yield, callback, self, path)
