@@ -206,7 +206,7 @@ Fs.read = async.func(function(yield, callback, self, file)
 end)
 
 Fs.close = async.func(function(yield, callback, self, file)
-  self.loop:assert(libuv.uv_fs_close(self.loop, self, self.result, callback))
+  self.loop:assert(libuv.uv_fs_close(self.loop, self, file, callback))
   yield(self)
   local status = tonumber(self.result)
   if status < 0 then
@@ -462,9 +462,9 @@ Tcp.write = async.func(function(yield, callback, self, content)
   self.loop:assert(libuv.uv_write(req, ffi.cast('uv_stream_t*', self), buf, 1, callback))
   local status = yield(req)
   if tonumber(status) ~= 0 then
-    if not self:is_closing() then
-      self:close()
-    end
+    -- if not self:is_closing() then
+    --   self:close()
+    -- end
     error(self.loop:last_error())
     -- if not libuv.uv_is_closing(ffi.cast('uv_handle_t*', self.handle)) then
     --   libuv.uv_close((uv_handle_t*) req->handle, on_close)
