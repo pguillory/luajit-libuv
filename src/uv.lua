@@ -335,6 +335,45 @@ Fs.rename = async.func(function(yield, callback, self, path, new_path)
   libuv.uv_fs_req_cleanup(self)
 end)
 
+-- int uv_fs_link(uv_loop_t* loop, uv_fs_t* req, const char* path, const char* new_path, uv_fs_cb cb);
+
+Fs.link = async.func(function(yield, callback, self, path, new_path)
+  self.loop:assert(libuv.uv_fs_link(self.loop, self, path, new_path, callback))
+  yield(self)
+  local status = tonumber(self.result)
+  if status < 0 then
+    error(self.loop:last_error())
+  end
+  libuv.uv_fs_req_cleanup(self)
+end)
+
+-- int uv_fs_symlink(uv_loop_t* loop, uv_fs_t* req, const char* path, const char* new_path, int flags, uv_fs_cb cb);
+
+Fs.symlink = async.func(function(yield, callback, self, path, new_path, flags)
+  local flags = flags or 0
+  self.loop:assert(libuv.uv_fs_symlink(self.loop, self, path, new_path, flags, callback))
+  yield(self)
+  local status = tonumber(self.result)
+  if status < 0 then
+    error(self.loop:last_error())
+  end
+  libuv.uv_fs_req_cleanup(self)
+end)
+
+-- int uv_fs_readlink(uv_loop_t* loop, uv_fs_t* req, const char* path, uv_fs_cb cb);
+
+Fs.readlink = async.func(function(yield, callback, self, path)
+  self.loop:assert(libuv.uv_fs_readlink(self.loop, self, path, callback))
+  yield(self)
+  local status = tonumber(self.result)
+  if status < 0 then
+    error(self.loop:last_error())
+  end
+  local path = ffi.string(self.ptr)
+  libuv.uv_fs_req_cleanup(self)
+  return path
+end)
+
 -- int uv_fs_fsync(uv_loop_t* loop, uv_fs_t* req, uv_file file, uv_fs_cb cb);
 
 Fs.fsync = async.func(function(yield, callback, self, file)
