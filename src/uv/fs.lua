@@ -1,7 +1,6 @@
 local uv = require 'uv'
 local class = require 'class'
 local ffi = require 'ffi'
-local octal = require 'uv/octal'
 
 ffi.cdef [[
   mode_t umask(mode_t mask);
@@ -49,7 +48,18 @@ local mode_atoi = setmetatable({}, { __index = function(self, s)
   local i
   if type(s) == 'string' then
     if #s == 3 then
-      i = octal(s)
+      i = 0
+      local function octal_digit(index, value)
+        local n = tonumber(s:sub(index, index))
+        if n >= 0 and n <= 7 then
+          i = i + n * value
+        else
+          error('file modes look like: "755" or "rwxr-xr-x"')
+        end
+      end
+      octal_digit(1, 64)
+      octal_digit(2, 8)
+      octal_digit(3, 1)
     elseif #s == 9 then
       i = 0
       local function match_char(index, expected_char, n)
