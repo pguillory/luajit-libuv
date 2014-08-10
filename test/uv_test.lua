@@ -39,6 +39,7 @@ uv.run(function()
 
   local file = fs:open(new_filename)
   assert(fs:read(file) == 'hello!')
+  fs:fsync(file)
   fs:close(file)
 
   fs:unlink(new_filename)

@@ -335,6 +335,18 @@ Fs.rename = async.func(function(yield, callback, self, path, new_path)
   libuv.uv_fs_req_cleanup(self)
 end)
 
+-- int uv_fs_fsync(uv_loop_t* loop, uv_fs_t* req, uv_file file, uv_fs_cb cb);
+
+Fs.fsync = async.func(function(yield, callback, self, file)
+  self.loop:assert(libuv.uv_fs_fsync(self.loop, self, file, callback))
+  yield(self)
+  local status = tonumber(self.result)
+  if status < 0 then
+    error(self.loop:last_error())
+  end
+  libuv.uv_fs_req_cleanup(self)
+end)
+
 --------------------------------------------------------------------------------
 -- Stat
 --------------------------------------------------------------------------------
