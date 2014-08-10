@@ -17,43 +17,43 @@ local libuv = ffi.load('uv')
 local libuv2 = ffi.load('uv2')
 
 --------------------------------------------------------------------------------
--- Loop
+-- uv_loop_t
 --------------------------------------------------------------------------------
 
-local Loop = ctype('uv_loop_t')
+local uv_loop_t = ctype('uv_loop_t')
 
-function Loop:assert(r)
+function uv_loop_t:assert(r)
   if tonumber(r) ~= 0 then
     error(self:last_error(), 2)
   end
 end
 
-function Loop:run(callback)
+function uv_loop_t:run(callback)
   self:timer():start(function()
     assert(coroutine.resume(coroutine.create(callback)))
   end)
   libuv.uv_run(self, libuv.UV_RUN_DEFAULT)
 end
 
-function Loop:tcp()
+function uv_loop_t:tcp()
   local tcp = ffi.new('uv_tcp_t')
   libuv.uv_tcp_init(self, tcp)
   return tcp
 end
 
-function Loop:fs()
+function uv_loop_t:fs()
   local fs = ffi.new('uv_fs_t')
   fs.loop = self
   return fs
 end
 
-function Loop:timer()
+function uv_loop_t:timer()
   local timer = ffi.new('uv_timer_t')
   libuv.uv_timer_init(self, timer)
   return timer
 end
 
-function Loop:last_error()
+function uv_loop_t:last_error()
   local error = libuv.uv_last_error(self)
   return ffi.string(libuv.uv_err_name(error)) .. ': ' .. ffi.string(libuv.uv_strerror(error))
 end
@@ -176,12 +176,12 @@ do
 end
 
 --------------------------------------------------------------------------------
--- Fs
+-- uv_fs_t
 --------------------------------------------------------------------------------
 
-local Fs = ctype('uv_fs_t')
+local uv_fs_t = ctype('uv_fs_t')
 
-Fs.open = async.func(function(yield, callback, self, path, flags, mode)
+uv_fs_t.open = async.func(function(yield, callback, self, path, flags, mode)
   local flags = flags_atoi[flags or 'r']
   local mode = mode_atoi[mode or '700']
   self.loop:assert(libuv.uv_fs_open(self.loop, self, path, flags, mode, callback))
@@ -194,7 +194,7 @@ Fs.open = async.func(function(yield, callback, self, path, flags, mode)
   return descriptor
 end)
 
-Fs.read = async.func(function(yield, callback, self, file)
+uv_fs_t.read = async.func(function(yield, callback, self, file)
   local buf = ffi.C.malloc(4096)
   self.loop:assert(libuv.uv_fs_read(self.loop, self, file, buf, 4096, -1, callback))
   yield(self)
@@ -208,7 +208,7 @@ Fs.read = async.func(function(yield, callback, self, file)
   return chunk
 end)
 
-Fs.close = async.func(function(yield, callback, self, file)
+uv_fs_t.close = async.func(function(yield, callback, self, file)
   self.loop:assert(libuv.uv_fs_close(self.loop, self, file, callback))
   yield(self)
   local status = tonumber(self.result)
@@ -220,7 +220,7 @@ end)
 
 -- int uv_fs_unlink(uv_loop_t* loop, uv_fs_t* req, const char* path, uv_fs_cb cb);
 
-Fs.unlink = async.func(function(yield, callback, self, path)
+uv_fs_t.unlink = async.func(function(yield, callback, self, path)
   self.loop:assert(libuv.uv_fs_unlink(self.loop, self, path, callback))
   yield(self)
   local status = tonumber(self.result)
@@ -232,7 +232,7 @@ end)
 
 -- int uv_fs_write(uv_loop_t* loop, uv_fs_t* req, uv_file file, void* buf, size_t length, int64_t offset, uv_fs_cb cb);
 
-Fs.write = async.func(function(yield, callback, self, file, buffer)
+uv_fs_t.write = async.func(function(yield, callback, self, file, buffer)
   self.loop:assert(libuv.uv_fs_write(self.loop, self, file, ffi.cast('void*', buffer), #buffer, -1, callback))
   yield(self)
   local status = tonumber(self.result)
@@ -244,7 +244,7 @@ end)
 
 -- int uv_fs_mkdir(uv_loop_t* loop, uv_fs_t* req, const char* path, int mode, uv_fs_cb cb);
 
-Fs.mkdir = async.func(function(yield, callback, self, path, mode)
+uv_fs_t.mkdir = async.func(function(yield, callback, self, path, mode)
   local mode = mode_atoi[mode or '700']
   assert(self.loop, 'no loop!')
   self.loop:assert(libuv.uv_fs_mkdir(self.loop, self, path, mode, callback))
@@ -258,7 +258,7 @@ end)
 
 -- int uv_fs_rmdir(uv_loop_t* loop, uv_fs_t* req, const char* path, uv_fs_cb cb);
 
-Fs.rmdir = async.func(function(yield, callback, self, path)
+uv_fs_t.rmdir = async.func(function(yield, callback, self, path)
   self.loop:assert(libuv.uv_fs_rmdir(self.loop, self, path, callback))
   yield(self)
   local status = tonumber(self.result)
@@ -270,7 +270,7 @@ end)
 
 -- int uv_fs_chmod(uv_loop_t* loop, uv_fs_t* req, const char* path, int mode, uv_fs_cb cb);
 
-Fs.chmod = async.func(function(yield, callback, self, path, mode)
+uv_fs_t.chmod = async.func(function(yield, callback, self, path, mode)
   local mode = mode_atoi[mode or '700']
   self.loop:assert(libuv.uv_fs_chmod(self.loop, self, path, mode, callback))
   yield(self)
@@ -283,7 +283,7 @@ end)
 
 -- int uv_fs_fchmod(uv_loop_t* loop, uv_fs_t* req, uv_file file, int mode, uv_fs_cb cb);
 
-Fs.fchmod = async.func(function(yield, callback, self, file, mode)
+uv_fs_t.fchmod = async.func(function(yield, callback, self, file, mode)
   self.loop:assert(libuv.uv_fs_fchmod(self.loop, self, file, mode, callback))
   yield(self)
   local status = tonumber(self.result)
@@ -295,7 +295,7 @@ end)
 
 -- int uv_fs_chown(uv_loop_t* loop, uv_fs_t* req, const char* path, uv_uid_t uid, uv_gid_t gid, uv_fs_cb cb);
 
-Fs.chown = async.func(function(yield, callback, self, path, uid, gid)
+uv_fs_t.chown = async.func(function(yield, callback, self, path, uid, gid)
   self.loop:assert(libuv.uv_fs_chown(self.loop, self, path, uid, gid, callback))
   yield(self)
   local status = tonumber(self.result)
@@ -307,7 +307,7 @@ end)
 
 -- int uv_fs_fchown(uv_loop_t* loop, uv_fs_t* req, uv_file file, uv_uid_t uid, uv_gid_t gid, uv_fs_cb cb);
 
-Fs.fchown = async.func(function(yield, callback, self, file, uid, gid)
+uv_fs_t.fchown = async.func(function(yield, callback, self, file, uid, gid)
   self.loop:assert(libuv.uv_fs_fchown(self.loop, self, file, uid, gid, callback))
   yield(self)
   local status = tonumber(self.result)
@@ -319,7 +319,7 @@ end)
 
 -- int uv_fs_stat(uv_loop_t* loop, uv_fs_t* req, const char* path, uv_fs_cb cb);
 
-Fs.stat = async.func(function(yield, callback, self, path)
+uv_fs_t.stat = async.func(function(yield, callback, self, path)
   self.loop:assert(libuv.uv_fs_stat(self.loop, self, path, callback))
   yield(self)
   local status = tonumber(self.result)
@@ -333,7 +333,7 @@ end)
 
 -- int uv_fs_fstat(uv_loop_t* loop, uv_fs_t* req, uv_file file, uv_fs_cb cb);
 
-Fs.fstat = async.func(function(yield, callback, self, path)
+uv_fs_t.fstat = async.func(function(yield, callback, self, path)
   self.loop:assert(libuv.uv_fs_fstat(self.loop, self, path, callback))
   yield(self)
   local status = tonumber(self.result)
@@ -347,7 +347,7 @@ end)
 
 -- int uv_fs_lstat(uv_loop_t* loop, uv_fs_t* req, const char* path, uv_fs_cb cb);
 
-Fs.lstat = async.func(function(yield, callback, self, path)
+uv_fs_t.lstat = async.func(function(yield, callback, self, path)
   self.loop:assert(libuv.uv_fs_lstat(self.loop, self, path, callback))
   yield(self)
   local status = tonumber(self.result)
@@ -361,7 +361,7 @@ end)
 
 -- int uv_fs_rename(uv_loop_t* loop, uv_fs_t* req, const char* path, const char* new_path, uv_fs_cb cb);
 
-Fs.rename = async.func(function(yield, callback, self, path, new_path)
+uv_fs_t.rename = async.func(function(yield, callback, self, path, new_path)
   self.loop:assert(libuv.uv_fs_rename(self.loop, self, path, new_path, callback))
   yield(self)
   local status = tonumber(self.result)
@@ -373,7 +373,7 @@ end)
 
 -- int uv_fs_link(uv_loop_t* loop, uv_fs_t* req, const char* path, const char* new_path, uv_fs_cb cb);
 
-Fs.link = async.func(function(yield, callback, self, path, new_path)
+uv_fs_t.link = async.func(function(yield, callback, self, path, new_path)
   self.loop:assert(libuv.uv_fs_link(self.loop, self, path, new_path, callback))
   yield(self)
   local status = tonumber(self.result)
@@ -385,7 +385,7 @@ end)
 
 -- int uv_fs_symlink(uv_loop_t* loop, uv_fs_t* req, const char* path, const char* new_path, int flags, uv_fs_cb cb);
 
-Fs.symlink = async.func(function(yield, callback, self, path, new_path, flags)
+uv_fs_t.symlink = async.func(function(yield, callback, self, path, new_path, flags)
   local flags = flags or 0
   self.loop:assert(libuv.uv_fs_symlink(self.loop, self, path, new_path, flags, callback))
   yield(self)
@@ -398,7 +398,7 @@ end)
 
 -- int uv_fs_readlink(uv_loop_t* loop, uv_fs_t* req, const char* path, uv_fs_cb cb);
 
-Fs.readlink = async.func(function(yield, callback, self, path)
+uv_fs_t.readlink = async.func(function(yield, callback, self, path)
   self.loop:assert(libuv.uv_fs_readlink(self.loop, self, path, callback))
   yield(self)
   local status = tonumber(self.result)
@@ -412,7 +412,7 @@ end)
 
 -- int uv_fs_fsync(uv_loop_t* loop, uv_fs_t* req, uv_file file, uv_fs_cb cb);
 
-Fs.fsync = async.func(function(yield, callback, self, file)
+uv_fs_t.fsync = async.func(function(yield, callback, self, file)
   self.loop:assert(libuv.uv_fs_fsync(self.loop, self, file, callback))
   yield(self)
   local status = tonumber(self.result)
@@ -423,10 +423,10 @@ Fs.fsync = async.func(function(yield, callback, self, file)
 end)
 
 --------------------------------------------------------------------------------
--- Stat
+-- uv_statbuf_t
 --------------------------------------------------------------------------------
 
-local Stat = ctype('uv_statbuf_t')
+local uv_statbuf_t = ctype('uv_statbuf_t')
 
 local S_IFMT		 = octal('0170000')  -- [XSI] type of file mask
 local S_IFIFO		 = octal('0010000')  -- [XSI] named pipe (fifo)
@@ -437,51 +437,51 @@ local S_IFREG		 = octal('0100000')  -- [XSI] regular
 local S_IFLNK		 = octal('0120000')  -- [XSI] symbolic link
 local S_IFSOCK	 = octal('0140000')  -- [XSI] socket
 
-function Stat:uid()
+function uv_statbuf_t:uid()
   return self.st_uid
 end
 
-function Stat:gid()
+function uv_statbuf_t:gid()
   return self.st_gid
 end
 
-function Stat:size()
+function uv_statbuf_t:size()
   return self.st_size
 end
 
-function Stat:mode()
+function uv_statbuf_t:mode()
   return bit.band(self.st_mode, bit.bnot(S_IFMT))
 end
 
-function Stat:is_dir()
+function uv_statbuf_t:is_dir()
   return bit.band(self.st_mode, S_IFDIR) > 0
 end
 
-function Stat:is_fifo()
+function uv_statbuf_t:is_fifo()
   return bit.band(self.st_mode, S_IFIFO) > 0
 end
 
 do
   local ok, err = pcall(function() return ffi.new('uv_statbuf_t').st_atime end)
   if ok then
-    function Stat:atime()         return self.st_atime end
-    function Stat:atimensec()     return self.st_atimensec end
-    function Stat:mtime()         return self.st_mtime end
-    function Stat:mtimensec()     return self.st_mtimensec end
-    function Stat:ctime()         return self.st_ctime end
-    function Stat:ctimensec()     return self.st_ctimensec end
-    function Stat:birthtime()     return self.st_birthtime end
-    function Stat:birthtimensec() return self.st_birthtimensec end
+    function uv_statbuf_t:atime()         return self.st_atime end
+    function uv_statbuf_t:atimensec()     return self.st_atimensec end
+    function uv_statbuf_t:mtime()         return self.st_mtime end
+    function uv_statbuf_t:mtimensec()     return self.st_mtimensec end
+    function uv_statbuf_t:ctime()         return self.st_ctime end
+    function uv_statbuf_t:ctimensec()     return self.st_ctimensec end
+    function uv_statbuf_t:birthtime()     return self.st_birthtime end
+    function uv_statbuf_t:birthtimensec() return self.st_birthtimensec end
   else
     assert(err:find('st_atime'), err)
-    function Stat:atime()         return self.st_atimespec.tv_sec end
-    function Stat:atimensec()     return self.st_atimespec.tv_nsec end
-    function Stat:mtime()         return self.st_mtimespec.tv_sec end
-    function Stat:mtimensec()     return self.st_mtimespec.tv_nsec end
-    function Stat:ctime()         return self.st_ctimespec.tv_sec end
-    function Stat:ctimensec()     return self.st_ctimespec.tv_nsec end
-    function Stat:birthtime()     return self.st_birthtimespec.tv_sec end
-    function Stat:birthtimensec() return self.st_birthtimespec.tv_nsec end
+    function uv_statbuf_t:atime()         return self.st_atimespec.tv_sec end
+    function uv_statbuf_t:atimensec()     return self.st_atimespec.tv_nsec end
+    function uv_statbuf_t:mtime()         return self.st_mtimespec.tv_sec end
+    function uv_statbuf_t:mtimensec()     return self.st_mtimespec.tv_nsec end
+    function uv_statbuf_t:ctime()         return self.st_ctimespec.tv_sec end
+    function uv_statbuf_t:ctimensec()     return self.st_ctimespec.tv_nsec end
+    function uv_statbuf_t:birthtime()     return self.st_birthtimespec.tv_sec end
+    function uv_statbuf_t:birthtimensec() return self.st_birthtimespec.tv_nsec end
   end
 end
 
@@ -519,33 +519,33 @@ end
 
 
 --------------------------------------------------------------------------------
--- Timer
+-- uv_timer_t
 --------------------------------------------------------------------------------
 
-local Timer = ctype('uv_timer_t')
+local uv_timer_t = ctype('uv_timer_t')
 
-function Timer:start(callback, timeout, repeat_time)
+function uv_timer_t:start(callback, timeout, repeat_time)
   return self.loop:assert(libuv.uv_timer_start(self, callback, timeout or 0, repeat_time or 0))
 end
 
 --------------------------------------------------------------------------------
--- Stream
+-- uv_stream_t
 --------------------------------------------------------------------------------
 
-local Stream = ctype('uv_stream_t')
+local uv_stream_t = ctype('uv_stream_t')
 
-function Stream:accept(client)
+function uv_stream_t:accept(client)
   return 0 == tonumber(libuv.uv_accept(self, ffi.cast('uv_stream_t*', client)))
 end
 
-Stream.read = async.func(function(yield, callback, self)
+uv_stream_t.read = async.func(function(yield, callback, self)
   libuv2.lua_uv_read_start(ffi.cast('uv_stream_t*', self), libuv2.lua_uv_alloc, callback)
   local nread, buf_base, buf_len = yield(self)
   libuv.uv_read_stop(ffi.cast('uv_stream_t*', self))
   return ffi.string(buf_base, nread)
 end)
 
-Stream.write = async.func(function(yield, callback, self, content)
+uv_stream_t.write = async.func(function(yield, callback, self, content)
   local req = ffi.new('uv_write_t')
   local buf = ffi.new('uv_buf_t')
   buf.base = ffi.cast('char*', content)
@@ -566,22 +566,22 @@ Stream.write = async.func(function(yield, callback, self, content)
   -- ffi.C.free(buf)
 end)
 
-Stream.close = async.func(function(yield, callback, self)
+uv_stream_t.close = async.func(function(yield, callback, self)
   libuv.uv_close(ffi.cast('uv_handle_t*', self), callback)
   yield(self)
 end)
 
 --------------------------------------------------------------------------------
--- Tcp
+-- uv_tcp_t
 --------------------------------------------------------------------------------
 
-local Tcp = ctype('uv_tcp_t')
+local uv_tcp_t = ctype('uv_tcp_t')
 
-function Tcp:bind(ip, port)
+function uv_tcp_t:bind(ip, port)
   libuv.uv_tcp_bind(self, libuv.uv_ip4_addr(ip, port))
 end
 
-Tcp.connect = async.func(function(yield, callback, self, address, port)
+uv_tcp_t.connect = async.func(function(yield, callback, self, address, port)
   local socket = self.loop:tcp()
   local connect = ffi.new('uv_connect_t')
   local dest = libuv.uv_ip4_addr(address, port)
@@ -594,7 +594,7 @@ Tcp.connect = async.func(function(yield, callback, self, address, port)
   return connect
 end)
 
-Tcp.listen = async.server(function(yield, callback, self, on_connect)
+uv_tcp_t.listen = async.server(function(yield, callback, self, on_connect)
   self.loop:assert(libuv.uv_listen(ffi.cast('uv_stream_t*', self), 128, callback))
   yield(self, function(self, status)
     if tonumber(status) >= 0 then
@@ -608,7 +608,7 @@ Tcp.listen = async.server(function(yield, callback, self, on_connect)
   end)
 end)
 
-Tcp.close = async.func(function(yield, callback, self)
+uv_tcp_t.close = async.func(function(yield, callback, self)
   libuv.uv_close(ffi.cast('uv_handle_t*', self), callback)
   yield(self)
 end)
