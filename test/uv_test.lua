@@ -17,6 +17,7 @@ uv.run(function()
 
   local fs = uv.fs()
   local filename = dir .. '/777.txt'
+  local new_filename = dir .. '/new.txt'
   
   fs:mkdir(dir)
 
@@ -34,11 +35,13 @@ uv.run(function()
   assert(stat:is_fifo() == false)
   assert(math.abs(os.time() - tonumber(stat:atime())) < 10)
 
-  local file = fs:open(filename)
+  fs:rename(filename, new_filename)
+
+  local file = fs:open(new_filename)
   assert(fs:read(file) == 'hello!')
   fs:close(file)
 
-  fs:unlink(filename)
+  fs:unlink(new_filename)
   fs:rmdir(dir)
 end)
 

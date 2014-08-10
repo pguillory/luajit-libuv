@@ -323,6 +323,18 @@ Fs.lstat = async.func(function(yield, callback, self, path)
   return stat
 end)
 
+-- int uv_fs_rename(uv_loop_t* loop, uv_fs_t* req, const char* path, const char* new_path, uv_fs_cb cb);
+
+Fs.rename = async.func(function(yield, callback, self, path, new_path)
+  self.loop:assert(libuv.uv_fs_rename(self.loop, self, path, new_path, callback))
+  yield(self)
+  local status = tonumber(self.result)
+  if status < 0 then
+    error(self.loop:last_error())
+  end
+  libuv.uv_fs_req_cleanup(self)
+end)
+
 --------------------------------------------------------------------------------
 -- Stat
 --------------------------------------------------------------------------------
