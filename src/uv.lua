@@ -24,7 +24,7 @@ local Loop = ctype('uv_loop_t')
 
 function Loop:assert(r)
   if tonumber(r) ~= 0 then
-    error(self:last_error())
+    error(self:last_error(), 2)
   end
 end
 
@@ -439,24 +439,14 @@ function Stream:accept(client)
   return 0 == tonumber(libuv.uv_accept(self, ffi.cast('uv_stream_t*', client)))
 end
 
---------------------------------------------------------------------------------
--- Tcp
---------------------------------------------------------------------------------
-
-local Tcp = ctype('uv_tcp_t')
-
-function Tcp:bind(ip, port)
-  libuv.uv_tcp_bind(self, libuv.uv_ip4_addr(ip, port))
-end
-
-Tcp.read = async.func(function(yield, callback, self)
+Stream.read = async.func(function(yield, callback, self)
   libuv2.lua_uv_read_start(ffi.cast('uv_stream_t*', self), libuv2.lua_uv_alloc, callback)
   local nread, buf_base, buf_len = yield(self)
   libuv.uv_read_stop(ffi.cast('uv_stream_t*', self))
   return ffi.string(buf_base, nread)
 end)
 
-Tcp.write = async.func(function(yield, callback, self, content)
+Stream.write = async.func(function(yield, callback, self, content)
   local req = ffi.new('uv_write_t')
   local buf = ffi.new('uv_buf_t')
   buf.base = ffi.cast('char*', content)
@@ -477,13 +467,41 @@ Tcp.write = async.func(function(yield, callback, self, content)
   -- ffi.C.free(buf)
 end)
 
+Stream.close = async.func(function(yield, callback, self)
+  libuv.uv_close(ffi.cast('uv_handle_t*', self), callback)
+  yield(self)
+end)
+
+--------------------------------------------------------------------------------
+-- Tcp
+--------------------------------------------------------------------------------
+
+local Tcp = ctype('uv_tcp_t')
+
+function Tcp:bind(ip, port)
+  libuv.uv_tcp_bind(self, libuv.uv_ip4_addr(ip, port))
+end
+
+Tcp.connect = async.func(function(yield, callback, self, address, port)
+  local socket = self.loop:tcp()
+  local connect = ffi.new('uv_connect_t')
+  local dest = libuv.uv_ip4_addr(address, port)
+
+  libuv.uv_tcp_connect(connect, socket, dest, callback)
+  local status = yield(connect)
+  if status < 0 then
+    error(self.loop:last_error())
+  end
+  return connect
+end)
+
 Tcp.listen = async.server(function(callback, self, on_connect)
   self.loop:assert(libuv.uv_listen(ffi.cast('uv_stream_t*', self), 128, callback))
   return self, function(self, status)
     if tonumber(status) >= 0 then
       local client = self.loop:tcp()
       if self:accept(client) then
-        on_connect(client)
+        on_connect(ffi.cast('uv_stream_t*', client))
       else
         client:close()
       end
@@ -491,9 +509,10 @@ Tcp.listen = async.server(function(callback, self, on_connect)
   end
 end)
 
-function Tcp:close()
-  libuv.uv_close(ffi.cast('uv_handle_t*', self), nil)
-end
+Tcp.close = async.func(function(yield, callback, self)
+  libuv.uv_close(ffi.cast('uv_handle_t*', self), callback)
+  yield(self)
+end)
 
 --------------------------------------------------------------------------------
 -- uv
