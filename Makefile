@@ -1,13 +1,26 @@
-all: libuv2.dylib uv2.min.h
+all: libuv.dylib uv.min.h
 
-libuv2.dylib:
-	gcc -shared src/uv2.c -o libuv2.dylib -luv
+libuv.dylib: libuv/Makefile
+	cd libuv && make
+	cp libuv/.libs/libuv.dylib .
 
-uv2.min.h:
-	cat src/uv2.h | gcc -E - | grep -v '^ *#' > uv2.min.h
+libuv/Makefile: libuv/configure
+	cd libuv && ./configure
+
+libuv/configure: libuv/include
+	cd libuv && sh autogen.sh
+
+uv.min.h: libuv/include
+	cat libuv/include/uv.h | gcc -E - | grep -v '^ *#' > uv.min.h
+
+libuv/include:
+	git submodule init
+	git submodule update
+	cd libuv && git checkout v0.11.28
 
 clean:
-	rm -f libuv2.dylib uv2.min.h
+	rm -rf libuv *.dylib *.min.h
+	mkdir libuv
 
 test: run-tests
 run-tests:
