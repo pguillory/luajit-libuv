@@ -3,7 +3,6 @@ local ffi = require 'ffi'
 local async = require 'async'
 local ctype = require 'ctype'
 local libuv = require 'uv/libuv'
-local libuv2 = require 'uv/libuv2'
 
 --------------------------------------------------------------------------------
 -- uv_stream_t
@@ -11,11 +10,18 @@ local libuv2 = require 'uv/libuv2'
 
 local uv_stream_t = ctype('uv_stream_t')
 
+local function alloc_cb(handle, suggested_size, buf)
+  buf.base = ffi.C.malloc(suggested_size)
+  buf.len = suggested_size
+end
+
 uv_stream_t.read = async.func(function(yield, callback, self)
-  libuv2.lua_uv_read_start(ffi.cast('uv_stream_t*', self), libuv2.lua_uv_alloc, callback)
-  local nread, buf_base, buf_len = yield(self)
+  libuv.uv_read_start(ffi.cast('uv_stream_t*', self), alloc_cb, callback)
+  local nread, buf = yield(self)
   libuv.uv_read_stop(ffi.cast('uv_stream_t*', self))
-  return ffi.string(buf_base, nread)
+  local chunk = ffi.string(buf.base, nread)
+  ffi.C.free(buf.base)
+  return chunk
 end)
 
 uv_stream_t.write = async.func(function(yield, callback, self, content)
@@ -24,7 +30,8 @@ uv_stream_t.write = async.func(function(yield, callback, self, content)
   buf.base = ffi.cast('char*', content)
   buf.len = #content
   -- local buf = libuv.uv_buf_init(s, #s)
-  self.loop:assert(libuv.uv_write(req, ffi.cast('uv_stream_t*', self), buf, 1, callback))
+  local r = libuv.uv_write(req, ffi.cast('uv_stream_t*', self), buf, 1, callback)
+  self.loop:assert(r)
   local status = yield(req)
   if tonumber(status) ~= 0 then
     -- if not self:is_closing() then

@@ -2,7 +2,9 @@ local ffi = require 'ffi'
 
 do
   -- local dir = debug.getinfo(1).source:match('@(.*/)') or ''
-  ffi.cdef(io.open('uv2.min.h'):read('*a'))
+  local file = assert(io.open('uv.min.h'), 'uv.min.h not find -- try running make')
+  ffi.cdef(file:read('*a'))
+  file:close()
 end
 
 ffi.cdef [[

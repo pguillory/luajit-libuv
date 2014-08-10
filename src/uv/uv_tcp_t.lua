@@ -3,7 +3,6 @@ local ffi = require 'ffi'
 local async = require 'async'
 local ctype = require 'ctype'
 local libuv = require 'uv/libuv'
-local libuv2 = require 'uv/libuv2'
 
 --------------------------------------------------------------------------------
 -- uv_tcp_t
@@ -12,15 +11,18 @@ local libuv2 = require 'uv/libuv2'
 local uv_tcp_t = ctype('uv_tcp_t')
 
 function uv_tcp_t:bind(ip, port)
-  libuv.uv_tcp_bind(self, libuv.uv_ip4_addr(ip, port))
+  local addr = ffi.new('struct sockaddr_in')
+  libuv.uv_ip4_addr(ip, port, addr)
+  libuv.uv_tcp_bind(self, ffi.cast('struct sockaddr*', addr), 0)
 end
 
-uv_tcp_t.connect = async.func(function(yield, callback, self, address, port)
+uv_tcp_t.connect = async.func(function(yield, callback, self, ip, port)
   local socket = self.loop:tcp()
   local connect = ffi.new('uv_connect_t')
-  local dest = libuv.uv_ip4_addr(address, port)
+  local addr = ffi.new('struct sockaddr_in')
+  libuv.uv_ip4_addr(ip, port, addr)
 
-  libuv.uv_tcp_connect(connect, socket, dest, callback)
+  libuv.uv_tcp_connect(connect, socket, ffi.cast('struct sockaddr*', addr), callback)
   local status = yield(connect)
   if status < 0 then
     error(self.loop:last_error())

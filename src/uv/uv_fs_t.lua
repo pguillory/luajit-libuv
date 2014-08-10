@@ -3,7 +3,6 @@ local ffi = require 'ffi'
 local async = require 'async'
 local ctype = require 'ctype'
 local libuv = require 'uv/libuv'
-local libuv2 = require 'uv/libuv2'
 
 --------------------------------------------------------------------------------
 -- uv_fs_t
@@ -16,22 +15,24 @@ uv_fs_t.open = async.func(function(yield, callback, self, path, flags, mode)
   yield(self)
   local descriptor = tonumber(self.result)
   if descriptor < 0 then
-    error(self.loop:last_error())
+    error(ffi.string(libuv.uv_strerror(self.result)))
   end
   libuv.uv_fs_req_cleanup(self)
   return descriptor
 end)
 
 uv_fs_t.read = async.func(function(yield, callback, self, file)
-  local buf = ffi.C.malloc(4096)
-  self.loop:assert(libuv.uv_fs_read(self.loop, self, file, buf, 4096, -1, callback))
+  local buf = ffi.new('uv_buf_t')
+  buf.base = ffi.C.malloc(4096)
+  buf.len = 4096
+  self.loop:assert(libuv.uv_fs_read(self.loop, self, file, buf, 1, -1, callback))
   yield(self)
   local nread = tonumber(self.result)
   if nread < 0 then
-    error(self.loop:last_error())
+    error(ffi.string(libuv.uv_strerror(self.result)))
   end
-  local chunk = ffi.string(buf, nread)
-  ffi.C.free(buf)
+  local chunk = ffi.string(buf.base, nread)
+  ffi.C.free(buf.base)
   libuv.uv_fs_req_cleanup(self)
   return chunk
 end)
@@ -41,7 +42,7 @@ uv_fs_t.close = async.func(function(yield, callback, self, file)
   yield(self)
   local status = tonumber(self.result)
   if status < 0 then
-    error(self.loop:last_error())
+    error(ffi.string(libuv.uv_strerror(self.result)))
   end
   libuv.uv_fs_req_cleanup(self)
 end)
@@ -53,7 +54,7 @@ uv_fs_t.unlink = async.func(function(yield, callback, self, path)
   yield(self)
   local status = tonumber(self.result)
   if status < 0 then
-    error(self.loop:last_error())
+    error(ffi.string(libuv.uv_strerror(self.result)))
   end
   libuv.uv_fs_req_cleanup(self)
 end)
@@ -61,11 +62,14 @@ end)
 -- int uv_fs_write(uv_loop_t* loop, uv_fs_t* req, uv_file file, void* buf, size_t length, int64_t offset, uv_fs_cb cb);
 
 uv_fs_t.write = async.func(function(yield, callback, self, file, buffer)
-  self.loop:assert(libuv.uv_fs_write(self.loop, self, file, ffi.cast('void*', buffer), #buffer, -1, callback))
+  local buf = ffi.new('uv_buf_t')
+  buf.base = ffi.cast('char*', buffer)
+  buf.len = #buffer
+  self.loop:assert(libuv.uv_fs_write(self.loop, self, file, buf, 1, -1, callback))
   yield(self)
   local status = tonumber(self.result)
   if status < 0 then
-    error(self.loop:last_error())
+    error(ffi.string(libuv.uv_strerror(self.result)))
   end
   libuv.uv_fs_req_cleanup(self)
 end)
@@ -77,7 +81,7 @@ uv_fs_t.mkdir = async.func(function(yield, callback, self, path, mode)
   yield(self)
   local status = tonumber(self.result)
   if status < 0 then
-    error(self.loop:last_error())
+    error(ffi.string(libuv.uv_strerror(self.result)))
   end
   libuv.uv_fs_req_cleanup(self)
 end)
@@ -89,7 +93,7 @@ uv_fs_t.rmdir = async.func(function(yield, callback, self, path)
   yield(self)
   local status = tonumber(self.result)
   if status < 0 then
-    error(self.loop:last_error())
+    error(ffi.string(libuv.uv_strerror(self.result)))
   end
   libuv.uv_fs_req_cleanup(self)
 end)
@@ -101,7 +105,7 @@ uv_fs_t.chmod = async.func(function(yield, callback, self, path, mode)
   yield(self)
   local status = tonumber(self.result)
   if status < 0 then
-    error(self.loop:last_error())
+    error(ffi.string(libuv.uv_strerror(self.result)))
   end
   libuv.uv_fs_req_cleanup(self)
 end)
@@ -113,7 +117,7 @@ uv_fs_t.fchmod = async.func(function(yield, callback, self, file, mode)
   yield(self)
   local status = tonumber(self.result)
   if status < 0 then
-    error(self.loop:last_error())
+    error(ffi.string(libuv.uv_strerror(self.result)))
   end
   libuv.uv_fs_req_cleanup(self)
 end)
@@ -125,7 +129,7 @@ uv_fs_t.chown = async.func(function(yield, callback, self, path, uid, gid)
   yield(self)
   local status = tonumber(self.result)
   if status < 0 then
-    error(self.loop:last_error())
+    error(ffi.string(libuv.uv_strerror(self.result)))
   end
   libuv.uv_fs_req_cleanup(self)
 end)
@@ -137,7 +141,7 @@ uv_fs_t.fchown = async.func(function(yield, callback, self, file, uid, gid)
   yield(self)
   local status = tonumber(self.result)
   if status < 0 then
-    error(self.loop:last_error())
+    error(ffi.string(libuv.uv_strerror(self.result)))
   end
   libuv.uv_fs_req_cleanup(self)
 end)
@@ -149,9 +153,9 @@ uv_fs_t.stat = async.func(function(yield, callback, self, path)
   yield(self)
   local status = tonumber(self.result)
   if status < 0 then
-    error(self.loop:last_error())
+    error(ffi.string(libuv.uv_strerror(self.result)))
   end
-  local stat = ffi.cast('uv_statbuf_t*', self.ptr)
+  local stat = ffi.cast('uv_stat_t*', self.ptr)
   libuv.uv_fs_req_cleanup(self)
   return stat
 end)
@@ -163,9 +167,9 @@ uv_fs_t.fstat = async.func(function(yield, callback, self, path)
   yield(self)
   local status = tonumber(self.result)
   if status < 0 then
-    error(self.loop:last_error())
+    error(ffi.string(libuv.uv_strerror(self.result)))
   end
-  local stat = ffi.cast('uv_statbuf_t*', self.ptr)
+  local stat = ffi.cast('uv_stat_t*', self.ptr)
   libuv.uv_fs_req_cleanup(self)
   return stat
 end)
@@ -177,9 +181,9 @@ uv_fs_t.lstat = async.func(function(yield, callback, self, path)
   yield(self)
   local status = tonumber(self.result)
   if status < 0 then
-    error(self.loop:last_error())
+    error(ffi.string(libuv.uv_strerror(self.result)))
   end
-  local stat = ffi.cast('uv_statbuf_t*', self.ptr)
+  local stat = ffi.cast('uv_stat_t*', self.ptr)
   libuv.uv_fs_req_cleanup(self)
   return stat
 end)
@@ -191,7 +195,7 @@ uv_fs_t.rename = async.func(function(yield, callback, self, path, new_path)
   yield(self)
   local status = tonumber(self.result)
   if status < 0 then
-    error(self.loop:last_error())
+    error(ffi.string(libuv.uv_strerror(self.result)))
   end
   libuv.uv_fs_req_cleanup(self)
 end)
@@ -203,7 +207,7 @@ uv_fs_t.link = async.func(function(yield, callback, self, path, new_path)
   yield(self)
   local status = tonumber(self.result)
   if status < 0 then
-    error(self.loop:last_error())
+    error(ffi.string(libuv.uv_strerror(self.result)))
   end
   libuv.uv_fs_req_cleanup(self)
 end)
@@ -216,7 +220,7 @@ uv_fs_t.symlink = async.func(function(yield, callback, self, path, new_path, fla
   yield(self)
   local status = tonumber(self.result)
   if status < 0 then
-    error(self.loop:last_error())
+    error(ffi.string(libuv.uv_strerror(self.result)))
   end
   libuv.uv_fs_req_cleanup(self)
 end)
@@ -228,7 +232,7 @@ uv_fs_t.readlink = async.func(function(yield, callback, self, path)
   yield(self)
   local status = tonumber(self.result)
   if status < 0 then
-    error(self.loop:last_error())
+    error(ffi.string(libuv.uv_strerror(self.result)))
   end
   local path = ffi.string(self.ptr)
   libuv.uv_fs_req_cleanup(self)
@@ -242,7 +246,7 @@ uv_fs_t.fsync = async.func(function(yield, callback, self, file)
   yield(self)
   local status = tonumber(self.result)
   if status < 0 then
-    error(self.loop:last_error())
+    error(ffi.string(libuv.uv_strerror(self.result)))
   end
   libuv.uv_fs_req_cleanup(self)
 end)

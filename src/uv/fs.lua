@@ -223,13 +223,15 @@ function fs.tmpname()
 end
 
 function fs.cwd()
-  local buf = ffi.gc(ffi.C.malloc(4096), ffi.C.free)
-  assert(0 == libuv.uv_cwd(buf, 4096).code)
+  local buf = ffi.C.malloc(4096)
+  local len = ffi.new('uint64_t[1]')
+  len[0] = 4096
+  assert(0 == libuv.uv_cwd(buf, len))
   return ffi.string(buf)
 end
 
 function fs.chdir(dir)
-  assert(0 == libuv.uv_chdir(dir).code)
+  assert(0 == libuv.uv_chdir(dir))
 end
 
 return fs

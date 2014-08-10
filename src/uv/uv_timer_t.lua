@@ -3,7 +3,6 @@ local ffi = require 'ffi'
 local async = require 'async'
 local ctype = require 'ctype'
 local libuv = require 'uv/libuv'
-local libuv2 = require 'uv/libuv2'
 
 --------------------------------------------------------------------------------
 -- uv_timer_t
