@@ -4,8 +4,6 @@ local async = require 'async'
 local ctype = require 'ctype'
 local libuv = require 'uv/libuv'
 local libuv2 = require 'uv/libuv2'
-local mode_atoi = require 'uv/mode_atoi'
-local flags_atoi = require 'uv/flags_atoi'
 
 --------------------------------------------------------------------------------
 -- uv_fs_t
@@ -14,8 +12,6 @@ local flags_atoi = require 'uv/flags_atoi'
 local uv_fs_t = ctype('uv_fs_t')
 
 uv_fs_t.open = async.func(function(yield, callback, self, path, flags, mode)
-  local flags = flags_atoi[flags or 'r']
-  local mode = mode_atoi[mode or '700']
   self.loop:assert(libuv.uv_fs_open(self.loop, self, path, flags, mode, callback))
   yield(self)
   local descriptor = tonumber(self.result)
@@ -77,8 +73,6 @@ end)
 -- int uv_fs_mkdir(uv_loop_t* loop, uv_fs_t* req, const char* path, int mode, uv_fs_cb cb);
 
 uv_fs_t.mkdir = async.func(function(yield, callback, self, path, mode)
-  local mode = mode_atoi[mode or '700']
-  assert(self.loop, 'no loop!')
   self.loop:assert(libuv.uv_fs_mkdir(self.loop, self, path, mode, callback))
   yield(self)
   local status = tonumber(self.result)
@@ -103,7 +97,6 @@ end)
 -- int uv_fs_chmod(uv_loop_t* loop, uv_fs_t* req, const char* path, int mode, uv_fs_cb cb);
 
 uv_fs_t.chmod = async.func(function(yield, callback, self, path, mode)
-  local mode = mode_atoi[mode or '700']
   self.loop:assert(libuv.uv_fs_chmod(self.loop, self, path, mode, callback))
   yield(self)
   local status = tonumber(self.result)
