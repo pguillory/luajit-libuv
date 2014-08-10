@@ -13,38 +13,34 @@ local gid = ffi.C.getgid()
 uv.run(function()
   local dir = fs.tmpname()
   fs.unlink(dir)
-  -- print('ls -alF ' .. dir)
-
-  local filename = dir .. '/777.txt'
-  
   fs.mkdir(dir)
+  fs.chdir(dir)
+  assert(fs.cwd():find(dir, 1, true))
 
   -- writing
-  local file = fs.open(filename, 'w', '777')
+  local file = fs.open('file', 'w', '777')
   file:write('hello!')
   file:close()
 
   -- reading
-  local file = fs.open(filename)
+  local file = fs.open('file')
   assert(file:read() == 'hello!')
   file:fsync()
   file:close()
 
   -- hard links
-  local link_filename = dir .. '/link.txt'
-  fs.link(filename, link_filename)
-  local file = fs.open(link_filename)
+  fs.link('file', 'link')
+  local file = fs.open('link')
   assert(file:read() == 'hello!')
   file:close()
-  fs.unlink(link_filename)
+  fs.unlink('link')
 
   -- symlinks
-  local symlink_filename = dir .. '/symlink.txt'
-  fs.symlink(filename, symlink_filename)
-  assert(fs.readlink(symlink_filename) == filename)
-  fs.unlink(symlink_filename)
+  fs.symlink('file', 'symlink')
+  assert(fs.readlink('symlink') == 'file')
+  fs.unlink('symlink')
 
-  local stat = fs.stat(filename)
+  local stat = fs.stat('file')
   assert(stat:uid() == uid)
   -- This doesn't work! stat:gid() is returning 0 for some reason.
   -- assert(stat:gid() == gid)
@@ -55,18 +51,17 @@ uv.run(function()
   assert(math.abs(os.time() - tonumber(stat:atime())) < 10)
 
   -- renaming
-  local new_filename = dir .. '/new.txt'
-  fs.rename(filename, new_filename)
-  local file = fs.open(new_filename)
+  fs.rename('file', 'new-file')
+  local file = fs.open('new-file')
   assert(file:read() == 'hello!')
   file:close()
-  fs.unlink(new_filename)
+  fs.unlink('new-file')
 
   fs.rmdir(dir)
 
   -- errors
   local ok, err = pcall(function()
-    fs.open(dir .. '/nonexistent')
+    fs.open('nonexistent')
   end)
   assert(not ok and err:find('no such file or directory'))
 end)

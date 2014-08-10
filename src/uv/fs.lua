@@ -1,6 +1,7 @@
 local uv = require 'uv'
 local class = require 'class'
 local ffi = require 'ffi'
+local libuv = require 'uv/libuv'
 
 ffi.cdef [[
   mode_t umask(mode_t mask);
@@ -219,6 +220,16 @@ end
 
 function fs.tmpname()
   return os.tmpname()
+end
+
+function fs.cwd()
+  local buf = ffi.gc(ffi.C.malloc(4096), ffi.C.free)
+  assert(0 == libuv.uv_cwd(buf, 4096).code)
+  return ffi.string(buf)
+end
+
+function fs.chdir(dir)
+  assert(0 == libuv.uv_chdir(dir).code)
 end
 
 return fs

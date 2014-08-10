@@ -11,10 +11,6 @@ local libuv2 = require 'uv/libuv2'
 
 local uv_stream_t = ctype('uv_stream_t')
 
-function uv_stream_t:accept(client)
-  return 0 == tonumber(libuv.uv_accept(self, ffi.cast('uv_stream_t*', client)))
-end
-
 uv_stream_t.read = async.func(function(yield, callback, self)
   libuv2.lua_uv_read_start(ffi.cast('uv_stream_t*', self), libuv2.lua_uv_alloc, callback)
   local nread, buf_base, buf_len = yield(self)

@@ -33,7 +33,7 @@ uv_tcp_t.listen = async.server(function(yield, callback, self, on_connect)
   yield(self, function(self, status)
     if tonumber(status) >= 0 then
       local client = self.loop:tcp()
-      if self:accept(client) then
+      if 0 == tonumber(libuv.uv_accept(self, ffi.cast('uv_stream_t*', client))) then
         return on_connect(ffi.cast('uv_stream_t*', client))
       else
         client:close()
