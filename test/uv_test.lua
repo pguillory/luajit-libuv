@@ -43,6 +43,11 @@ uv.run(function()
 
   fs:unlink(new_filename)
   fs:rmdir(dir)
+
+  local ok, err = pcall(function()
+    fs:open(dir .. '/nonexistent')
+  end)
+  assert(not ok and err:find('no such file or directory'))
 end)
 
 uv.run(function()
