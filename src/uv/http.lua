@@ -147,13 +147,6 @@ function Server:listen(callback)
 
     local status, headers, body = callback(request)
 
-    print(string.format('%s - - [%s] "%s %s" %s %i %q %q',
-          request.socket:getpeername(),
-          os.date("!%Y-%m-%dT%TZ"),
-          request.method, request.url, status, #body,
-          request.headers['Referer'] or '-',
-          request.headers['User-Agent'] or '-'))
-
     stream:write('HTTP/1.1 ' .. status .. ' ' .. status_codes[status] .. '\n')
     stream:write('Server: luajit-libuv\n')
     for field, value in pairs(headers) do
