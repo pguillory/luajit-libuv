@@ -2,7 +2,7 @@ local ffi = require 'ffi'
 
 local async = {}
 
-function async.func(func)
+function async.func(cb_type, func)
   local threads = {}
 
   local function yield(req)
@@ -12,7 +12,7 @@ function async.func(func)
     return coroutine.yield()
   end
 
-  local function callback(req, ...)
+  local callback = ffi.cast(cb_type, function(req, ...)
     local id = tostring(req):sub(-8)
     -- print('callback ', req, id)
     local thread = threads[id]
@@ -21,14 +21,14 @@ function async.func(func)
     end
     threads[id] = nil
     return assert(coroutine.resume(thread, ...))
-  end
+  end)
 
   return function(...)
     return func(yield, callback, ...)
   end
 end
 
-function async.server(func)
+function async.server(cb_type, func)
   local callbacks = {}
 
   local function yield(self, callback)
@@ -36,13 +36,13 @@ function async.server(func)
     self.data = ffi.cast('void*', #callbacks)
   end
 
-  local function callback(self, ...)
+  local callback = ffi.cast(cb_type, function(self, ...)
     local id = tonumber(ffi.cast('int', self.data))
     local callback = callbacks[id]
     assert(callback, 'callback not found')
     local thread = coroutine.create(callback)
     return assert(coroutine.resume(thread, self, ...))
-  end
+  end)
 
   return function(...)
     return func(yield, callback, ...)

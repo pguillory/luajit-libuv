@@ -16,7 +16,7 @@ function uv_tcp_t:bind(ip, port)
   libuv.uv_tcp_bind(self, ffi.cast('struct sockaddr*', addr), 0)
 end
 
-uv_tcp_t.connect = async.func(function(yield, callback, self, ip, port)
+uv_tcp_t.connect = async.func('uv_connect_cb', function(yield, callback, self, ip, port)
   local socket = self.loop:tcp()
   local connect = ffi.new('uv_connect_t')
   local addr = ffi.new('struct sockaddr_in')
@@ -30,7 +30,7 @@ uv_tcp_t.connect = async.func(function(yield, callback, self, ip, port)
   return connect
 end)
 
-uv_tcp_t.listen = async.server(function(yield, callback, self, on_connect)
+uv_tcp_t.listen = async.server('uv_connection_cb', function(yield, callback, self, on_connect)
   self.loop:assert(libuv.uv_listen(ffi.cast('uv_stream_t*', self), 128, callback))
   yield(self, function(self, status)
     if tonumber(status) >= 0 then
@@ -44,14 +44,14 @@ uv_tcp_t.listen = async.server(function(yield, callback, self, on_connect)
   end)
 end)
 
-uv_tcp_t.close = async.func(function(yield, callback, self)
+uv_tcp_t.close = async.func('uv_close_cb', function(yield, callback, self)
   libuv.uv_close(ffi.cast('uv_handle_t*', self), callback)
   yield(self)
 end)
 
 -- int uv_tcp_getsockname(const uv_tcp_t* handle, struct sockaddr* name, int* namelen);
 
-uv_tcp_t.getsockname = async.func(function(yield, callback, self)
+uv_tcp_t.getsockname = function(self)
   local addr = ffi.new('struct sockaddr')
   local len = ffi.new('int[1]')
   len[0] = ffi.sizeof(addr)
@@ -61,12 +61,12 @@ uv_tcp_t.getsockname = async.func(function(yield, callback, self)
   local peername = ffi.string(buf)
   ffi.C.free(buf)
   return peername
-end)
+end
 
 -- int uv_tcp_getpeername(const uv_tcp_t* handle, struct sockaddr* name, int* namelen);
 -- int uv_ip4_name(const struct sockaddr_in* src, char* dst, size_t size);
 
-uv_tcp_t.getpeername = async.func(function(yield, callback, self)
+uv_tcp_t.getpeername = function(self)
   local addr = ffi.new('struct sockaddr')
   local len = ffi.new('int[1]')
   len[0] = ffi.sizeof(addr)
@@ -76,7 +76,7 @@ uv_tcp_t.getpeername = async.func(function(yield, callback, self)
   local peername = ffi.string(buf)
   ffi.C.free(buf)
   return peername
-end)
+end
 
 
 return uv_tcp_t

@@ -15,7 +15,7 @@ local function alloc_cb(handle, suggested_size, buf)
   buf.len = suggested_size
 end
 
-uv_stream_t.read = async.func(function(yield, callback, self)
+uv_stream_t.read = async.func('uv_read_cb', function(yield, callback, self)
   libuv.uv_read_start(ffi.cast('uv_stream_t*', self), alloc_cb, callback)
   local nread, buf = yield(self)
   libuv.uv_read_stop(ffi.cast('uv_stream_t*', self))
@@ -24,7 +24,7 @@ uv_stream_t.read = async.func(function(yield, callback, self)
   return chunk
 end)
 
-uv_stream_t.write = async.func(function(yield, callback, self, content)
+uv_stream_t.write = async.func('uv_write_cb', function(yield, callback, self, content)
   local req = ffi.new('uv_write_t')
   local buf = ffi.new('uv_buf_t')
   buf.base = ffi.cast('char*', content)
@@ -45,7 +45,7 @@ uv_stream_t.write = async.func(function(yield, callback, self, content)
   -- ffi.C.free(buf)
 end)
 
-uv_stream_t.close = async.func(function(yield, callback, self)
+uv_stream_t.close = async.func('uv_close_cb', function(yield, callback, self)
   libuv.uv_close(ffi.cast('uv_handle_t*', self), callback)
   yield(self)
 end)
