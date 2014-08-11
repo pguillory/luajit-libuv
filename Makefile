@@ -51,4 +51,5 @@ run-tests:
 	@LUA_PATH="src/?.lua;;" luajit test/uv_test.lua
 	@LUA_PATH="src/?.lua;;" luajit test/fs_test.lua
 	@LUA_PATH="src/?.lua;;" luajit test/http_test.lua
+	@LUA_PATH="src/?.lua;;" luajit test/timer_test.lua
 	@echo All tests passing
