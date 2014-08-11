@@ -28,6 +28,8 @@ uv.run(function()
   file:sync()
   file:close()
 
+  assert(fs.readfile('file.txt') == 'hello!')
+
   -- hard links
   fs.link('file.txt', 'link.txt')
   local file = fs.open('link.txt')

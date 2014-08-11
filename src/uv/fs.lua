@@ -260,6 +260,17 @@ function fs.readlink(path)
   return uv.fs():readlink(path)
 end
 
+function fs.readfile(path)
+  local file = fs.open(path)
+  local buffer = {}
+  repeat
+    local chunk = file:read()
+    table.insert(buffer, chunk)
+  until chunk == ''
+  file:close()
+  return table.concat(buffer)
+end
+
 function fs.tmpname()
   return os.tmpname()
 end
