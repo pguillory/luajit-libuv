@@ -4,7 +4,6 @@ local libuv = require 'uv/libuv'
 
 local uv_fs_t = require 'uv/uv_fs_t'
 local uv_loop_t = require 'uv/uv_loop_t'
-local uv_stat_t = require 'uv/uv_stat_t'
 local uv_stream_t = require 'uv/uv_stream_t'
 local uv_tcp_t = require 'uv/uv_tcp_t'
 local uv_timer_t = require 'uv/uv_timer_t'

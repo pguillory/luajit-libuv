@@ -10,6 +10,27 @@ ffi.cdef [[
 
 
 --------------------------------------------------------------------------------
+-- octal
+--------------------------------------------------------------------------------
+
+local function octal(s)
+  local i = 0
+  for c in s:gmatch('.') do
+    i = i * 8 + tonumber(c)
+  end
+  return i
+end
+
+do
+  assert(octal('0') == 0)
+  assert(octal('1') == 1)
+  assert(octal('10') == 8)
+  assert(octal('11') == 9)
+  assert(octal('100') == 64)
+  assert(octal('101') == 65)
+end
+
+--------------------------------------------------------------------------------
 -- flags_atoi
 --------------------------------------------------------------------------------
 
@@ -49,18 +70,7 @@ local mode_atoi = setmetatable({}, { __index = function(self, s)
   local i
   if type(s) == 'string' then
     if #s == 3 then
-      i = 0
-      local function octal_digit(index, value)
-        local n = tonumber(s:sub(index, index))
-        if n >= 0 and n <= 7 then
-          i = i + n * value
-        else
-          error('file modes look like: "755" or "rwxr-xr-x"')
-        end
-      end
-      octal_digit(1, 64)
-      octal_digit(2, 8)
-      octal_digit(3, 1)
+      i = octal(s)
     elseif #s == 9 then
       i = 0
       local function match_char(index, expected_char, n)
@@ -121,6 +131,38 @@ do
 end
 
 --------------------------------------------------------------------------------
+-- Stat
+--------------------------------------------------------------------------------
+
+local S_IFMT    = octal('0170000')  -- type of file mask
+local S_IFIFO   = octal('0010000')  -- named pipe (fifo)
+local S_IFCHR   = octal('0020000')  -- character special
+local S_IFDIR   = octal('0040000')  -- directory
+local S_IFBLK   = octal('0060000')  -- block special
+local S_IFREG   = octal('0100000')  -- regular
+local S_IFLNK   = octal('0120000')  -- symbolic link
+local S_IFSOCK  = octal('0140000')  -- socket
+
+local Stat = function(stat)
+  return {
+    uid           = stat.st_uid,
+    gid           = stat.st_gid,
+    size          = stat.st_size,
+    mode          = bit.band(tonumber(stat.st_mode), bit.bnot(S_IFMT)),
+    is_dir        = bit.band(tonumber(stat.st_mode), S_IFDIR) > 0,
+    is_fifo       = bit.band(tonumber(stat.st_mode), S_IFIFO) > 0,
+    atime         = stat.st_atim.tv_sec,
+    atimensec     = stat.st_atim.tv_nsec,
+    mtime         = stat.st_mtim.tv_sec,
+    mtimensec     = stat.st_mtim.tv_nsec,
+    ctime         = stat.st_ctim.tv_sec,
+    ctimensec     = stat.st_ctim.tv_nsec,
+    birthtime     = stat.st_birthtim.tv_sec,
+    birthtimensec = stat.st_birthtim.tv_nsec,
+  }
+end
+
+--------------------------------------------------------------------------------
 -- File
 --------------------------------------------------------------------------------
 
@@ -149,8 +191,12 @@ function File:chown(uid, gid)
   return uv.fs():fchown(self.descriptor, uid, gid)
 end
 
-function File:fsync()
+function File:sync()
   return uv.fs():fsync(self.descriptor)
+end
+
+function File.stat()
+  return Stat(uv.fs():fstat(self.descriptor))
 end
 
 --------------------------------------------------------------------------------
@@ -191,11 +237,7 @@ function fs.chown(path, uid, gid)
 end
 
 function fs.stat(path)
-  return uv.fs():stat(path)
-end
-
-function fs.fstat(path)
-  return uv.fs():fstat(path)
+  return Stat(uv.fs():stat(path))
 end
 
 function fs.lstat(path)

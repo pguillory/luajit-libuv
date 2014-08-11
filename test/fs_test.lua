@@ -25,7 +25,7 @@ uv.run(function()
   -- reading
   local file = fs.open('file.txt')
   assert(file:read() == 'hello!')
-  file:fsync()
+  file:sync()
   file:close()
 
   -- hard links
@@ -41,14 +41,14 @@ uv.run(function()
   fs.unlink('symlink.txt')
 
   local stat = fs.stat('file.txt')
-  assert(stat:uid() == uid)
-  -- This doesn't work! stat:gid() is returning 0 for some reason.
-  -- assert(stat:gid() == gid)
-  assert(stat:mode() == 511) -- octal('777')
-  assert(stat:size() == 6)
-  assert(stat:is_dir() == false)
-  assert(stat:is_fifo() == false)
-  assert(math.abs(os.time() - tonumber(stat:atime())) < 10)
+  assert(stat.uid == uid)
+  -- This doesn't work! stat.gid is returning 0 for some reason.
+  -- assert(stat.gid == gid)
+  assert(stat.mode == 511) -- octal('777')
+  assert(stat.size == 6)
+  assert(stat.is_dir == false)
+  assert(stat.is_fifo == false)
+  assert(math.abs(os.time() - tonumber(stat.atime)) < 10)
 
   -- renaming
   fs.rename('file.txt', 'new-file.txt')
