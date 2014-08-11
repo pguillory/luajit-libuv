@@ -1,6 +1,11 @@
 require 'strict'
 local uv = require 'uv'
 
+for i = 1, 1000 do
+  uv.run(function()
+  end)
+end
+
 uv.run(function()
   local server = uv.tcp()
   server:bind('127.0.0.1', 7000)

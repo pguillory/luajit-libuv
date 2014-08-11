@@ -10,9 +10,10 @@ local libuv = require 'uv/libuv'
 
 local uv_timer_t = ctype('uv_timer_t')
 
-function uv_timer_t:start(callback, timeout, repeat_time)
+uv_timer_t.start = async.server('uv_timer_cb', function(yield, callback, self, on_timeout, timeout, repeat_time)
   self.loop:assert(libuv.uv_timer_start(self, callback, timeout or 0, repeat_time or 0))
-end
+  yield(self, on_timeout)
+end)
 
 function uv_timer_t:stop()
   self.loop:assert(libuv.uv_timer_stop(self))
