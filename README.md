@@ -1,7 +1,7 @@
 luajit-libuv
 ============
 
-Status: *work in progress, use at your own risk*
+Status: *in development*
 
 This project provides a [Luajit FFI] binding for the [libuv] library, which
 powers the async I/O behind [Node.js] and others. In contrast to [luv], it
@@ -17,12 +17,10 @@ local fs = require 'uv.fs'
 local http = require 'uv.http'
 
 uv.run(function()
-  -- Let's handle web requests...
   http.listen('127.0.0.1', 80, function(request)
     return 200, {}, 'Hello world!'
   end)
 
-  -- ...while simultaneously streaming a file to stdout. Why not.
   local file = fs.open('README.md')
   repeat
     local chunk = file:read()
