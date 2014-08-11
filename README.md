@@ -1,14 +1,12 @@
 luajit-libuv
 ============
 
-Status: *work in progress, just got started*
+Status: *work in progress, use at your own risk*
 
 This project provides a [Luajit FFI] binding for the [libuv] library, which
 powers the async I/O behind [Node.js] and others. In contrast to [luv], it
-relies on Lua coroutines to generate provide asynchronous I/O behavior with
-synchronous syntax.
-
-The API is a thin wrapper around `libuv`. It frequently returns the `libuv` structs themselves with additional methods attached via `ffi.metatype`.
+uses Lua coroutines to enable asynchronous I/O behavior with synchronous
+syntax.
 
 Usage
 -----
