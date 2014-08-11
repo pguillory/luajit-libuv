@@ -15,15 +15,15 @@ Usage
 
 ```lua
 local uv = require 'uv'
+local fs = require 'uv.fs'
 
 uv.run(function()
-  local fs = uv.fs()
-  local file = fs:open('README.md')
+  local file = fs.open('README.md')
   repeat
-    local chunk = fs:read(file)
+    local chunk = file:read()
     io.write(chunk)
   until chunk == ''
-  fs:close(file)
+  file:close()
 end)
 ```
 
