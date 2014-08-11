@@ -1,0 +1,10 @@
+language: erlang
+
+before_install:
+  - sudo apt-get install -y luajit
+
+install:
+  - make
+
+script:
+  - make test LUA=luajit-2.0.0-beta9

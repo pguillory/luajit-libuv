@@ -1,15 +1,19 @@
+LUA = luajit
+
 all: uv.min.h http_parser.min.h
 
 ################################################################################
 # libuv
 ################################################################################
 
-uv.min.h: libuv.dylib
-	cat libuv/include/uv.h | gcc -E - | grep -v '^ *#' > uv.min.h
+uv.min.h: libuv.a
+	gcc -E libuv/include/uv.h | grep -v '^ *#' > uv.min.h
 
-libuv.dylib: libuv/Makefile
+libuv.a: libuv/.libs
+	cp -f libuv/.libs/libuv.* .
+
+libuv/.libs: libuv/Makefile
 	cd libuv && make
-	cp libuv/.libs/libuv.dylib .
 
 libuv/Makefile: libuv/configure
 	cd libuv && ./configure
@@ -26,10 +30,11 @@ libuv/include/uv.h:
 ################################################################################
 
 http_parser.min.h: libhttp_parser.dylib
-	cat http-parser/http_parser.h | gcc -E - | grep -v '^ *#' | tail +344 > http_parser.min.h
+	gcc -E http-parser/http_parser.h | grep -v '^ *#' > http_parser.min.h
 
 libhttp_parser.dylib: http-parser/libhttp_parser.so.2.3
 	cp http-parser/libhttp_parser.so.2.3 libhttp_parser.dylib
+	cp http-parser/libhttp_parser.so.2.3 libhttp_parser.so
 
 http-parser/libhttp_parser.so.2.3:
 	cd http-parser && make library
@@ -43,13 +48,13 @@ http-parser/http_parser.h:
 ################################################################################
 
 clean:
-	rm -rf libuv http-parser *.dylib *.min.h
+	rm -rf libuv http-parser libuv.* libhttp_parser.* *.min.h
 	mkdir libuv http-parser
 
 test: run-tests
 run-tests:
-	@LUA_PATH="src/?.lua;;" luajit test/uv_test.lua
-	@LUA_PATH="src/?.lua;;" luajit test/fs_test.lua
-	@LUA_PATH="src/?.lua;;" luajit test/http_test.lua
-	@LUA_PATH="src/?.lua;;" luajit test/timer_test.lua
+	LUA_PATH="src/?.lua;;" ${LUA} test/uv_test.lua
+	LUA_PATH="src/?.lua;;" ${LUA} test/fs_test.lua
+	LUA_PATH="src/?.lua;;" ${LUA} test/http_test.lua
+	LUA_PATH="src/?.lua;;" ${LUA} test/timer_test.lua
 	@echo All tests passing

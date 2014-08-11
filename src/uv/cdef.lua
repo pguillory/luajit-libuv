@@ -9,7 +9,7 @@ end
 
 -- local dir = debug.getinfo(1).source:match('@(.*/)') or ''
 ffi.cdef(readfile('uv.min.h'))
-ffi.cdef(readfile('http_parser.min.h'))
+ffi.cdef(readfile('http_parser.min.h'):match('typedef struct http_parser http_parser;.*'))
 
 ffi.cdef [[
   void *malloc(size_t size);
