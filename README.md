@@ -31,13 +31,10 @@ Installation
 ------------
 
 ```bash
-# First, libuv needs to be installed on the system.
-brew install libuv
-
-# Now let's check out the repo.
 git clone git@github.com:pguillory/luajit-libuv.git
 cd luajit-libuv
 make
+make test
 
 # To run an example:
 export LUA_PATH="src/?.lua;;"
