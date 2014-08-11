@@ -1,3 +1,4 @@
+require 'strict'
 local uv = require 'uv'
 local http = require 'uv.http'
 
@@ -6,9 +7,7 @@ local http = require 'uv.http'
 --------------------------------------------------------------------------------
 
 uv.run(function()
-  local server = http.server(uv.loop)
-  server:bind('127.0.0.1', 7000)
-  server:listen(function(request)
+  local server = http.listen('127.0.0.1', 7000, function(request)
     return 200, {}, 'hello world'
   end)
 
@@ -47,7 +46,7 @@ uv.run(function()
     access_log = access_log .. line .. '\n'
   end
 
-  local server = http.server(uv.loop)
+  local server = http.server()
   server:bind('127.0.0.1', 7000)
   server:listen(with_access_log(append_to_log, function(request)
     return 200, {}, 'hello world'

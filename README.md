@@ -16,8 +16,15 @@ Usage
 ```lua
 local uv = require 'uv'
 local fs = require 'uv.fs'
+local http = require 'uv.http'
 
 uv.run(function()
+  -- Let's handle web requests...
+  http.listen('127.0.0.1', 80, function(request)
+    return 200, {}, 'Hello world!'
+  end)
+
+  -- ...while simultaneously streaming a file to stdout. Why not.
   local file = fs.open('README.md')
   repeat
     local chunk = file:read()

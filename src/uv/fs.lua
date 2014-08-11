@@ -1,7 +1,7 @@
-local uv = require 'uv'
 local class = require 'class'
 local ffi = require 'ffi'
 local libuv = require 'uv/libuv'
+local uv = require 'uv'
 
 ffi.cdef [[
   mode_t umask(mode_t mask);

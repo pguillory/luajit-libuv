@@ -1,7 +1,7 @@
-require 'strict'
-local ffi = require 'ffi'
 local class = require 'class'
+local ffi = require 'ffi'
 local libhttp_parser = require 'uv/libhttp_parser'
+local uv = require 'uv'
 
 --------------------------------------------------------------------------------
 -- status_codes
@@ -59,8 +59,8 @@ status_codes[505] = 'HTTP Version Not Supported'
 -- Server
 --------------------------------------------------------------------------------
 
-local Server = class(function(loop)
-  return { tcp = loop:tcp() }
+local Server = class(function(tcp)
+  return { tcp = tcp }
 end)
 
 function Server:bind(ip, port)
@@ -158,6 +158,21 @@ function Server:listen(callback)
   end)
 end
 
-return {
-  server = Server,
-}
+--------------------------------------------------------------------------------
+-- Server
+--------------------------------------------------------------------------------
+
+local http = {}
+
+function http.server()
+  return Server(uv.tcp())
+end
+
+function http.listen(host, port, callback)
+  local server = http.server(uv.loop)
+  server:bind(host, port)
+  server:listen(callback)
+  return server
+end
+
+return http
