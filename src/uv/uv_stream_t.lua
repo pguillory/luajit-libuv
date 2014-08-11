@@ -10,10 +10,10 @@ local libuv = require 'uv/libuv'
 
 local uv_stream_t = ctype('uv_stream_t')
 
-local function alloc_cb(handle, suggested_size, buf)
+local alloc_cb = ffi.cast('uv_alloc_cb', function(handle, suggested_size, buf)
   buf.base = ffi.C.malloc(suggested_size)
   buf.len = suggested_size
-end
+end)
 
 uv_stream_t.read = async.func('uv_read_cb', function(yield, callback, self)
   libuv.uv_read_start(ffi.cast('uv_stream_t*', self), alloc_cb, callback)
