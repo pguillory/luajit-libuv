@@ -40,10 +40,6 @@ git clone git@github.com:pguillory/luajit-libuv.git
 cd luajit-libuv
 make
 make test
-
-# To run an example:
-export LUA_PATH="src/?.lua;;"
-luajit examples/read_file.lua 
 ```
 
 [Luajit FFI]: http://luajit.org/ext_ffi.html
