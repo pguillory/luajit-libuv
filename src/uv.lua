@@ -28,4 +28,8 @@ function uv.tcp()
   return uv.loop:tcp()
 end
 
+function uv.timer()
+  return uv.loop:timer()
+end
+
 return uv

@@ -25,7 +25,7 @@ uv_tcp_t.connect = async.func(function(yield, callback, self, ip, port)
   libuv.uv_tcp_connect(connect, socket, ffi.cast('struct sockaddr*', addr), callback)
   local status = yield(connect)
   if status < 0 then
-    error(self.loop:last_error())
+    self.loop:assert(status)
   end
   return connect
 end)

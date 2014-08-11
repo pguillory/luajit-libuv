@@ -31,13 +31,12 @@ uv_stream_t.write = async.func(function(yield, callback, self, content)
   buf.len = #content
   -- local buf = libuv.uv_buf_init(s, #s)
   local r = libuv.uv_write(req, ffi.cast('uv_stream_t*', self), buf, 1, callback)
-  self.loop:assert(r)
   local status = yield(req)
   if tonumber(status) ~= 0 then
     -- if not self:is_closing() then
     --   self:close()
     -- end
-    error(self.loop:last_error())
+    self.loop:assert(status)
     -- if not libuv.uv_is_closing(ffi.cast('uv_handle_t*', self.handle)) then
     --   libuv.uv_close((uv_handle_t*) req->handle, on_close)
     -- end
