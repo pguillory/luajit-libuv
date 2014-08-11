@@ -1,4 +1,11 @@
-all: libuv.dylib uv.min.h
+all: uv.min.h http_parser.min.h
+
+################################################################################
+# libuv
+################################################################################
+
+uv.min.h: libuv.dylib
+	cat libuv/include/uv.h | gcc -E - | grep -v '^ *#' > uv.min.h
 
 libuv.dylib: libuv/Makefile
 	cd libuv && make
@@ -7,20 +14,37 @@ libuv.dylib: libuv/Makefile
 libuv/Makefile: libuv/configure
 	cd libuv && ./configure
 
-libuv/configure: libuv/include
+libuv/configure: libuv/include/uv.h
 	cd libuv && sh autogen.sh
 
-uv.min.h: libuv/include
-	cat libuv/include/uv.h | gcc -E - | grep -v '^ *#' > uv.min.h
-
-libuv/include:
+libuv/include/uv.h:
 	git submodule init
 	git submodule update
-	cd libuv && git checkout v0.11.28
+
+################################################################################
+# http-parser
+################################################################################
+
+http_parser.min.h: libhttp_parser.dylib
+	cat http-parser/http_parser.h | gcc -E - | grep -v '^ *#' | tail +344 > http_parser.min.h
+
+libhttp_parser.dylib: http-parser/libhttp_parser.so.2.3
+	cp http-parser/libhttp_parser.so.2.3 libhttp_parser.dylib
+
+http-parser/libhttp_parser.so.2.3:
+	cd http-parser && make library
+
+http-parser/http_parser.h:
+	git submodule init
+	git submodule update
+
+################################################################################
+# etc...
+################################################################################
 
 clean:
-	rm -rf libuv *.dylib *.min.h
-	mkdir libuv
+	rm -rf libuv http-parser *.dylib *.min.h
+	mkdir libuv http-parser
 
 test: run-tests
 run-tests:
