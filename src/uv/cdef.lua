@@ -1,11 +1,15 @@
 local ffi = require 'ffi'
 
-do
-  -- local dir = debug.getinfo(1).source:match('@(.*/)') or ''
-  local file = assert(io.open('uv.min.h'), 'uv.min.h not find -- try running make')
-  ffi.cdef(file:read('*a'))
+local function readfile(path)
+  local file = assert(io.open(path))
+  local body = file:read('*a')
   file:close()
+  return body
 end
+
+-- local dir = debug.getinfo(1).source:match('@(.*/)') or ''
+ffi.cdef(readfile('uv.min.h'))
+ffi.cdef(readfile('http_parser.min.h'))
 
 ffi.cdef [[
   void *malloc(size_t size);

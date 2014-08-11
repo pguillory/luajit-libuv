@@ -49,4 +49,34 @@ uv_tcp_t.close = async.func(function(yield, callback, self)
   yield(self)
 end)
 
+-- int uv_tcp_getsockname(const uv_tcp_t* handle, struct sockaddr* name, int* namelen);
+
+uv_tcp_t.getsockname = async.func(function(yield, callback, self)
+  local addr = ffi.new('struct sockaddr')
+  local len = ffi.new('int[1]')
+  len[0] = ffi.sizeof(addr)
+  local buf = ffi.C.malloc(4096)
+  self.loop:assert(libuv.uv_tcp_getsockname(self, addr, len))
+  self.loop:assert(libuv.uv_ip4_name(ffi.cast('struct sockaddr_in*', addr), buf, 4096))
+  local peername = ffi.string(buf)
+  ffi.C.free(buf)
+  return peername
+end)
+
+-- int uv_tcp_getpeername(const uv_tcp_t* handle, struct sockaddr* name, int* namelen);
+-- int uv_ip4_name(const struct sockaddr_in* src, char* dst, size_t size);
+
+uv_tcp_t.getpeername = async.func(function(yield, callback, self)
+  local addr = ffi.new('struct sockaddr')
+  local len = ffi.new('int[1]')
+  len[0] = ffi.sizeof(addr)
+  local buf = ffi.C.malloc(4096)
+  self.loop:assert(libuv.uv_tcp_getpeername(self, addr, len))
+  self.loop:assert(libuv.uv_ip4_name(ffi.cast('struct sockaddr_in*', addr), buf, 4096))
+  local peername = ffi.string(buf)
+  ffi.C.free(buf)
+  return peername
+end)
+
+
 return uv_tcp_t
