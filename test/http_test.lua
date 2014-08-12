@@ -23,6 +23,21 @@ uv.run(function()
   server:close()
 end)
 
+uv.run(function()
+  local server = http.listen('127.0.0.1', 7000, function(request)
+    assert(request.path == '/?')
+    assert(request.query == nil)
+    return 200, {}, 'hello world'
+  end)
+
+  local response = http.request{ host = '127.0.0.1', port = 7000 }
+  assert(response.status == 200)
+  assert(response.headers['Content-Length'] == '11')
+  assert(response.body == 'hello world')
+
+  server:close()
+end)
+
 --------------------------------------------------------------------------------
 -- middleware
 --------------------------------------------------------------------------------

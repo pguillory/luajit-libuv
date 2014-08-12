@@ -64,15 +64,20 @@ local function parse_url(request)
   local r = libhttp_parser.http_parser_parse_url(request.url, #request.url, 0, u)
   if r ~= 0 then return end
 
-  local function segment(id)
+  local function segment(name, id)
     if bit.band(u.field_set, bit.lshift(1, id)) > 0 then
       local field = u.field_data[id]
-      return request.url:sub(field.off + 1, field.off + 1 + field.len)
+      request[name] = request.url:sub(field.off + 1, field.off + 1 + field.len)
     end
   end
 
-  request.path = segment(libhttp_parser.UF_PATH)
-  request.query = segment(libhttp_parser.UF_QUERY)
+  segment('schema', libhttp_parser.UF_SCHEMA)
+  segment('host', libhttp_parser.UF_HOST)
+  segment('port', libhttp_parser.UF_PORT)
+  segment('path', libhttp_parser.UF_PATH)
+  segment('query', libhttp_parser.UF_QUERY)
+  segment('fragment', libhttp_parser.UF_FRAGMENT)
+  segment('userinfo', libhttp_parser.UF_USERINFO)
 end
 
 --------------------------------------------------------------------------------
@@ -161,8 +166,7 @@ function Server:listen(callback)
     -- parser.data = my_socket
 
     repeat
-      local buf = stream:read()
-      local nparsed = libhttp_parser.http_parser_execute(parser, settings, buf, #buf)
+      libhttp_parser.http_parser_execute(parser, settings, stream:read())
     until message_complete
 
     parse_url(request)
@@ -191,10 +195,111 @@ function http.server()
 end
 
 function http.listen(host, port, callback)
-  local server = http.server(uv.loop)
+  local server = http.server()
   server:bind(host, port)
   server:listen(callback)
   return server
+end
+
+function http.request(request)
+  if request.url then
+    parse_url(request)
+  end
+
+  local method = request.method or 'GET'
+  local host = request.host or error('host required', 2)
+  local port = request.port or 80
+  local path = request.path or '/?'
+  local query = request.query or ''
+  local headers = request.headers or {}
+  local body = request.body or ''
+
+  local client = uv.tcp():connect(host, port).handle
+  client:write(method:upper() .. ' ' .. path .. query .. ' HTTP/1.1\n')
+  for header, value in pairs(headers) do
+    client:write(header .. ': ' .. value .. '\n')
+  end
+  client:write('\n')
+  client:write(body)
+
+  local settings = ffi.new('http_parser_settings')
+
+  local response = {
+    -- url = '',
+    -- status = '',
+    headers = {},
+    body = '',
+  }
+
+  local header_last
+  local header_field
+  local header_value
+  local message_complete
+
+  -- settings.on_url = function(parser, buf, length)
+  --   response.url = response.url .. ffi.string(buf, length)
+  --   return 0
+  -- end
+
+  -- settings.on_status = function(parser, buf, length)
+  --   response.status = response.status .. ffi.string(buf, length)
+  --   return 0
+  -- end
+
+  settings.on_header_field = function(parser, buf, length)
+    if header_last == 'field' then
+      header_field = header_field .. ffi.string(buf, length)
+    elseif header_last == 'value' then
+      response.headers[header_field] = header_value
+      header_field = ffi.string(buf, length)
+    else
+      header_field = ffi.string(buf, length)
+    end
+    header_last = 'field'
+    return 0
+  end
+
+  settings.on_header_value = function(parser, buf, length)
+    if header_last == 'field' then
+      header_value = ffi.string(buf, length)
+    elseif header_last == 'value' then
+      header_value = header_value .. ffi.string(buf, length)
+    else
+      error('header value before field')
+    end
+    header_last = 'value'
+    return 0
+  end
+
+  settings.on_headers_complete = function(parser)
+    if header_last == 'value' then
+      response.headers[header_field] = header_value
+    end
+    return 0
+  end
+
+  settings.on_body = function(parser, buf, length)
+    response.body = response.body .. ffi.string(buf, length)
+    return 0
+  end
+
+  settings.on_message_complete = function(parser)
+    message_complete = true
+    return 0
+  end
+
+  local parser = ffi.new('http_parser')
+  libhttp_parser.http_parser_init(parser, libhttp_parser.HTTP_RESPONSE)
+  -- parser.data = my_socket
+
+  repeat
+    libhttp_parser.http_parser_execute(parser, settings, client:read())
+  until message_complete
+
+  client:close()
+
+  response.status = parser.status_code
+  return response
 end
 
 return http

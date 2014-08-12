@@ -21,7 +21,7 @@ uv_stream_t.read = async.func('uv_read_cb', function(yield, callback, self)
   libuv.uv_read_stop(ffi.cast('uv_stream_t*', self))
   local chunk = (nread < 0) and '' or ffi.string(buf.base, nread)
   ffi.C.free(buf.base)
-  return chunk
+  return chunk, nread
 end)
 
 uv_stream_t.write = async.func('uv_write_cb', function(yield, callback, self, content)
