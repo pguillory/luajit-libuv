@@ -1,16 +1,16 @@
 LUA = luajit
 
-all: uv.min.h http_parser.min.h
+all: src/uv/libuv.min.h src/uv/libhttp_parser.min.h
 
 ################################################################################
 # libuv
 ################################################################################
 
-uv.min.h: libuv.a
-	gcc -E libuv/include/uv.h | grep -v '^ *#' > uv.min.h
+src/uv/libuv.min.h: src/uv/libuv.a
+	gcc -E libuv/include/uv.h | grep -v '^ *#' > src/uv/libuv.min.h
 
-libuv.a: libuv/.libs
-	cp -f libuv/.libs/libuv.* .
+src/uv/libuv.a: libuv/.libs
+	cp -f libuv/.libs/libuv.* src/uv/
 
 libuv/.libs: libuv/Makefile
 	cd libuv && make
@@ -29,12 +29,12 @@ libuv/include/uv.h:
 # http-parser
 ################################################################################
 
-http_parser.min.h: libhttp_parser.dylib
-	gcc -E http-parser/http_parser.h | grep -v '^ *#' > http_parser.min.h
+src/uv/libhttp_parser.min.h: src/uv/libhttp_parser.dylib
+	gcc -E http-parser/http_parser.h | grep -v '^ *#' > src/uv/libhttp_parser.min.h
 
-libhttp_parser.dylib: http-parser/libhttp_parser.so.2.3
-	cp http-parser/libhttp_parser.so.2.3 libhttp_parser.dylib
-	cp http-parser/libhttp_parser.so.2.3 libhttp_parser.so
+src/uv/libhttp_parser.dylib: http-parser/libhttp_parser.so.2.3
+	cp http-parser/libhttp_parser.so.2.3 src/uv/libhttp_parser.dylib
+	cp http-parser/libhttp_parser.so.2.3 src/uv/libhttp_parser.so
 
 http-parser/libhttp_parser.so.2.3:
 	cd http-parser && make library
@@ -48,7 +48,9 @@ http-parser/http_parser.h:
 ################################################################################
 
 clean:
-	rm -rf libuv http-parser libuv.* libhttp_parser.* *.min.h
+	find src/uv -name "libhttp_parser.*" | grep -v lua | xargs rm
+	find src/uv -name "libuv.*" | grep -v lua | xargs rm
+	rm -rf libuv http-parser
 	mkdir libuv http-parser
 
 test: run-tests
