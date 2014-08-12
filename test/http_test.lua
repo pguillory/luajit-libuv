@@ -8,12 +8,14 @@ local http = require 'uv.http'
 
 uv.run(function()
   local server = http.listen('127.0.0.1', 7000, function(request)
+    assert(request.path == '/path/to/route?')
+    assert(request.query == 'a=1&b=2')
     return 200, {}, 'hello world'
   end)
 
   local client = uv.tcp():connect('127.0.0.1', 7000).handle
-  client:write('GET / HTTP/1.1\n\n')
-  local response = client:read()
+  client:write('GET /path/to/route?a=1&b=2 HTTP/1.1\n\n')
+  local response = client:read() .. client:read() .. client:read()
   assert(response:find('HTTP/1.1 200 OK'))
   assert(response:find('hello world'))
   client:close()

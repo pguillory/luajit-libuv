@@ -56,6 +56,26 @@ status_codes[504] = 'Gateway Timeout'
 status_codes[505] = 'HTTP Version Not Supported'
 
 --------------------------------------------------------------------------------
+-- parse_url
+--------------------------------------------------------------------------------
+
+local function parse_url(request)
+  local u = ffi.new('struct http_parser_url')
+  local r = libhttp_parser.http_parser_parse_url(request.url, #request.url, 0, u)
+  if r ~= 0 then return end
+
+  local function segment(id)
+    if bit.band(u.field_set, bit.lshift(1, id)) > 0 then
+      local field = u.field_data[id]
+      return request.url:sub(field.off + 1, field.off + 1 + field.len)
+    end
+  end
+
+  request.path = segment(libhttp_parser.UF_PATH)
+  request.query = segment(libhttp_parser.UF_QUERY)
+end
+
+--------------------------------------------------------------------------------
 -- Server
 --------------------------------------------------------------------------------
 
@@ -144,6 +164,8 @@ function Server:listen(callback)
       local buf = stream:read()
       local nparsed = libhttp_parser.http_parser_execute(parser, settings, buf, #buf)
     until message_complete
+
+    parse_url(request)
 
     local status, headers, body = callback(request)
 
