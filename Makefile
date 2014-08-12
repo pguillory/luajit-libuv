@@ -1,16 +1,16 @@
 LUA = luajit
 
-all: src/uv/libuv.min.h src/uv/libhttp_parser.min.h
+all: src/uv/lib/libuv.min.h src/uv/lib/libhttp_parser.min.h
 
 ################################################################################
 # libuv
 ################################################################################
 
-src/uv/libuv.min.h: src/uv/libuv.a
-	gcc -E libuv/include/uv.h | grep -v '^ *#' > src/uv/libuv.min.h
+src/uv/lib/libuv.min.h: src/uv/lib/libuv.a
+	gcc -E libuv/include/uv.h | grep -v '^ *#' > src/uv/lib/libuv.min.h
 
-src/uv/libuv.a: libuv/.libs
-	cp -f libuv/.libs/libuv.* src/uv/
+src/uv/lib/libuv.a: libuv/.libs
+	cp -f libuv/.libs/libuv.* src/uv/lib/
 
 libuv/.libs: libuv/Makefile
 	cd libuv && make
@@ -29,12 +29,12 @@ libuv/include/uv.h:
 # http-parser
 ################################################################################
 
-src/uv/libhttp_parser.min.h: src/uv/libhttp_parser.dylib
-	gcc -E http-parser/http_parser.h | grep -v '^ *#' > src/uv/libhttp_parser.min.h
+src/uv/lib/libhttp_parser.min.h: src/uv/lib/libhttp_parser.dylib
+	gcc -E http-parser/http_parser.h | grep -v '^ *#' > src/uv/lib/libhttp_parser.min.h
 
-src/uv/libhttp_parser.dylib: http-parser/libhttp_parser.so.2.3
-	cp http-parser/libhttp_parser.so.2.3 src/uv/libhttp_parser.dylib
-	cp http-parser/libhttp_parser.so.2.3 src/uv/libhttp_parser.so
+src/uv/lib/libhttp_parser.dylib: http-parser/libhttp_parser.so.2.3
+	cp http-parser/libhttp_parser.so.2.3 src/uv/lib/libhttp_parser.dylib
+	cp http-parser/libhttp_parser.so.2.3 src/uv/lib/libhttp_parser.so
 
 http-parser/libhttp_parser.so.2.3:
 	cd http-parser && make library
@@ -48,10 +48,8 @@ http-parser/http_parser.h:
 ################################################################################
 
 clean:
-	find src/uv -name "libhttp_parser.*" | grep -v lua | xargs rm
-	find src/uv -name "libuv.*" | grep -v lua | xargs rm
-	rm -rf libuv http-parser
-	mkdir libuv http-parser
+	rm -rf libuv http-parser src/uv/lib
+	mkdir libuv http-parser src/uv/lib
 
 test: run-tests
 run-tests:

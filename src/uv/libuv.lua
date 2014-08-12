@@ -3,7 +3,7 @@ local ffi = require 'ffi'
 local dir = debug.getinfo(1).source:match('@(.*/)') or ''
 
 do
-  local file = io.open(dir .. 'libuv.min.h')
+  local file = io.open(dir .. 'lib/libuv.min.h')
   if not file then
     error('libuv.min.h not found')
   end
@@ -12,10 +12,10 @@ do
   file:close()
 end
 
-local ok, lib = pcall(function() return ffi.load(dir .. 'libuv.dylib') end)
+local ok, lib = pcall(function() return ffi.load(dir .. 'lib/libuv.dylib') end)
 if ok then return lib end
 
-local ok, lib = pcall(function() return ffi.load(dir .. 'libuv.so') end)
+local ok, lib = pcall(function() return ffi.load(dir .. 'lib/libuv.so') end)
 if ok then return lib end
 
 assert('libuv not found')
