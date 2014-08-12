@@ -1,4 +1,4 @@
-local class = require 'class'
+local class = require 'uv/class'
 local ffi = require 'ffi'
 local libuv = require 'uv/libuv'
 local uv = require 'uv'

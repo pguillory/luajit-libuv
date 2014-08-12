@@ -1,7 +1,7 @@
 require 'uv/cdef'
 local ffi = require 'ffi'
-local async = require 'async'
-local ctype = require 'ctype'
+local async = require 'uv/async'
+local ctype = require 'uv/ctype'
 local libuv = require 'uv/libuv'
 
 --------------------------------------------------------------------------------
