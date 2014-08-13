@@ -8,7 +8,7 @@ local http = require 'uv.http'
 
 uv.run(function()
   local server = http.listen('127.0.0.1', 7000, function(request)
-    assert(request.path == '/path/to/route?')
+    assert(request.path == '/path/to/route')
     assert(request.query == 'a=1&b=2')
     return 200, {}, 'hello world'
   end)
@@ -25,13 +25,30 @@ end)
 
 uv.run(function()
   local server = http.listen('127.0.0.1', 7000, function(request)
-    assert(request.path == '/?')
-    assert(request.query == nil)
-    return 200, {}, 'hello world'
+    assert(request.method == 'GET')
+    assert(request.path == '/path/to/route')
+    assert(request.query == 'a=1&b=2')
+    assert(request.headers['User-Agent'] == 'test')
+    return 200, { Expires = '-1' }, 'hello world'
   end)
 
-  local response = http.request{ host = '127.0.0.1', port = 7000 }
+  local response = http.request{
+    url = 'http://127.0.0.1:7000/path/to/route?a=1&b=2',
+    headers = { ['User-Agent'] = 'test' },
+  }
+
   assert(response.status == 200)
+  assert(response.headers['Expires'] == '-1')
+  assert(response.headers['Content-Length'] == '11')
+  assert(response.body == 'hello world')
+
+  local response = http.request{
+    host = '127.0.0.1', port = 7000, path = '/path/to/route', query = 'a=1&b=2',
+    headers = { ['User-Agent'] = 'test' },
+  }
+
+  assert(response.status == 200)
+  assert(response.headers['Expires'] == '-1')
   assert(response.headers['Content-Length'] == '11')
   assert(response.body == 'hello world')
 

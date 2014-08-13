@@ -67,7 +67,7 @@ local function parse_url(request)
   local function segment(name, id)
     if bit.band(u.field_set, bit.lshift(1, id)) > 0 then
       local field = u.field_data[id]
-      request[name] = request.url:sub(field.off + 1, field.off + 1 + field.len)
+      request[name] = request.url:sub(field.off + 1, field.off + field.len)
     end
   end
 
@@ -78,6 +78,108 @@ local function parse_url(request)
   segment('query', libhttp_parser.UF_QUERY)
   segment('fragment', libhttp_parser.UF_FRAGMENT)
   segment('userinfo', libhttp_parser.UF_USERINFO)
+end
+
+do
+  local r = { url = 'http://127.0.0.1:7000/path/to/route?a=1&b=2#fragment' }
+  parse_url(r)
+  assert(r.schema == 'http')
+  assert(r.host == '127.0.0.1')
+  assert(r.port == '7000')
+  assert(r.path == '/path/to/route')
+  assert(r.query == 'a=1&b=2')
+  assert(r.fragment == 'fragment')
+end
+
+--------------------------------------------------------------------------------
+-- parse_http
+--------------------------------------------------------------------------------
+
+local function parse_http(stream, mode)
+  local header_last, header_field, header_value, message_complete
+  local headers, body, url = {}, ''
+
+  local on = {}
+
+  function on:url(buf, length)
+    url = (url or '') .. ffi.string(buf, length)
+    return 0
+  end
+
+  function on:header_field(buf, length)
+    if header_last == 'field' then
+      header_field = header_field .. ffi.string(buf, length)
+    elseif header_last == 'value' then
+      headers[header_field] = header_value
+      header_field = ffi.string(buf, length)
+    else
+      header_field = ffi.string(buf, length)
+    end
+    header_last = 'field'
+    return 0
+  end
+
+  function on:header_value(buf, length)
+    if header_last == 'field' then
+      header_value = ffi.string(buf, length)
+    elseif header_last == 'value' then
+      header_value = header_value .. ffi.string(buf, length)
+    else
+      error('header value before field')
+    end
+    header_last = 'value'
+    return 0
+  end
+
+  function on:headers_complete()
+    if header_last == 'value' then
+      headers[header_field] = header_value
+    end
+    return 0
+  end
+
+  function on:body(buf, length)
+    body = body .. ffi.string(buf, length)
+    return 0
+  end
+
+  function on:message_complete()
+    message_complete = true
+    return 0
+  end
+
+  local settings = ffi.new('http_parser_settings')
+
+  settings.on_url              = ffi.cast('http_data_cb', on.url)
+  settings.on_header_field     = ffi.cast('http_data_cb', on.header_field)
+  settings.on_header_value     = ffi.cast('http_data_cb', on.header_value)
+  settings.on_headers_complete = ffi.cast('http_cb',      on.headers_complete)
+  settings.on_body             = ffi.cast('http_data_cb', on.body)
+  settings.on_message_complete = ffi.cast('http_cb',      on.message_complete)
+
+  local parser = ffi.new('http_parser')
+  libhttp_parser.http_parser_init(parser, mode)
+
+  repeat
+    libhttp_parser.http_parser_execute(parser, settings, stream:read())
+  until message_complete
+
+  settings.on_url:free()
+  settings.on_header_field:free()
+  settings.on_header_value:free()
+  settings.on_headers_complete:free()
+  settings.on_body:free()
+  settings.on_message_complete:free()
+
+  local message = { url = url, headers = headers, body = body }
+
+  if mode == libhttp_parser.HTTP_REQUEST then
+    message.method = ffi.string(libhttp_parser.http_method_str(parser.method))
+  else
+    message.status = parser.status_code
+  end
+
+  return message
 end
 
 --------------------------------------------------------------------------------
@@ -98,78 +200,10 @@ end
 
 function Server:listen(callback)
   self.tcp:listen(function(stream)
-    local settings = ffi.new('http_parser_settings')
-
-    local request = {
-      url = '',
-      status = '',
-      headers = {},
-      body = '',
-      socket = ffi.cast('uv_tcp_t*', stream),
-    }
-
-    local header_last
-    local header_field
-    local header_value
-    local message_complete
-
-    settings.on_url = function(parser, buf, length)
-      request.url = request.url .. ffi.string(buf, length)
-      return 0
-    end
-
-    settings.on_header_field = function(parser, buf, length)
-      if header_last == 'field' then
-        header_field = header_field .. ffi.string(buf, length)
-      elseif header_last == 'value' then
-        request.headers[header_field] = header_value
-        header_field = ffi.string(buf, length)
-      else
-        header_field = ffi.string(buf, length)
-      end
-      header_last = 'field'
-      return 0
-    end
-
-    settings.on_header_value = function(parser, buf, length)
-      if header_last == 'field' then
-        header_value = ffi.string(buf, length)
-      elseif header_last == 'value' then
-        header_value = header_value .. ffi.string(buf, length)
-      else
-        error('header value before field')
-      end
-      header_last = 'value'
-      return 0
-    end
-
-    settings.on_headers_complete = function(parser)
-      if header_last == 'value' then
-        request.headers[header_field] = header_value
-      end
-      return 0
-    end
-
-    settings.on_body = function(parser, buf, length)
-      request.body = request.body .. ffi.string(buf, length)
-      return 0
-    end
-
-    settings.on_message_complete = function(parser)
-      request.method = ffi.string(libhttp_parser.http_method_str(parser.method))
-      message_complete = true
-      return 0
-    end
-
-    local parser = ffi.new('http_parser')
-    libhttp_parser.http_parser_init(parser, libhttp_parser.HTTP_REQUEST)
-    -- parser.data = my_socket
-
-    repeat
-      libhttp_parser.http_parser_execute(parser, settings, stream:read())
-    until message_complete
+    local request = parse_http(stream, libhttp_parser.HTTP_REQUEST)
 
     parse_url(request)
+    request.socket = ffi.cast('uv_tcp_t*', stream)
 
     local status, headers, body = callback(request)
 
@@ -214,91 +248,18 @@ function http.request(request)
   local headers = request.headers or {}
   local body = request.body or ''
 
-  local client = uv.tcp():connect(host, port).handle
-  client:write(method:upper() .. ' ' .. path .. query .. ' HTTP/1.1\n')
+  local client = uv.tcp():connect(host, tonumber(port)).handle
+  client:write(method:upper() .. ' ' .. path .. '?' .. query .. ' HTTP/1.1\n')
   for header, value in pairs(headers) do
     client:write(header .. ': ' .. value .. '\n')
   end
   client:write('\n')
   client:write(body)
 
-  local settings = ffi.new('http_parser_settings')
-
-  local response = {
-    -- url = '',
-    -- status = '',
-    headers = {},
-    body = '',
-  }
-
-  local header_last
-  local header_field
-  local header_value
-  local message_complete
-
-  -- settings.on_url = function(parser, buf, length)
-  --   response.url = response.url .. ffi.string(buf, length)
-  --   return 0
-  -- end
-
-  -- settings.on_status = function(parser, buf, length)
-  --   response.status = response.status .. ffi.string(buf, length)
-  --   return 0
-  -- end
-
-  settings.on_header_field = function(parser, buf, length)
-    if header_last == 'field' then
-      header_field = header_field .. ffi.string(buf, length)
-    elseif header_last == 'value' then
-      response.headers[header_field] = header_value
-      header_field = ffi.string(buf, length)
-    else
-      header_field = ffi.string(buf, length)
-    end
-    header_last = 'field'
-    return 0
-  end
-
-  settings.on_header_value = function(parser, buf, length)
-    if header_last == 'field' then
-      header_value = ffi.string(buf, length)
-    elseif header_last == 'value' then
-      header_value = header_value .. ffi.string(buf, length)
-    else
-      error('header value before field')
-    end
-    header_last = 'value'
-    return 0
-  end
-
-  settings.on_headers_complete = function(parser)
-    if header_last == 'value' then
-      response.headers[header_field] = header_value
-    end
-    return 0
-  end
-
-  settings.on_body = function(parser, buf, length)
-    response.body = response.body .. ffi.string(buf, length)
-    return 0
-  end
-
-  settings.on_message_complete = function(parser)
-    message_complete = true
-    return 0
-  end
-
-  local parser = ffi.new('http_parser')
-  libhttp_parser.http_parser_init(parser, libhttp_parser.HTTP_RESPONSE)
-  -- parser.data = my_socket
-
-  repeat
-    libhttp_parser.http_parser_execute(parser, settings, client:read())
-  until message_complete
+  local response = parse_http(client, libhttp_parser.HTTP_RESPONSE)
 
   client:close()
 
-  response.status = parser.status_code
   return response
 end
 
