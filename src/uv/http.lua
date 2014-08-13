@@ -182,6 +182,26 @@ local function parse_http(stream, mode)
   return message
 end
 
+do
+  local function test_stream(s)
+    local r = {}
+    function r:read()
+      function r:read() return '', 0 end
+      return s, #s
+    end
+    return r
+  end
+
+  local request = parse_http(test_stream('GET / HTTP/1.1\n\n'), libhttp_parser.HTTP_REQUEST)
+  assert(request.method == 'GET')
+  assert(request.status == nil)
+  assert(request.url == '/')
+  assert(request.body == '')
+
+  local request = parse_http(test_stream('POST / HTTP/1.1\n\n'), libhttp_parser.HTTP_REQUEST)
+  assert(request.method == 'POST')
+end
+
 --------------------------------------------------------------------------------
 -- Server
 --------------------------------------------------------------------------------
@@ -190,8 +210,8 @@ local Server = class(function(tcp)
   return { tcp = tcp }
 end)
 
-function Server:bind(ip, port)
-  self.tcp:bind(ip, port)
+function Server:bind(host, port)
+  self.tcp:bind(host, port)
 end
 
 function Server:close()
@@ -250,10 +270,11 @@ function http.request(request)
 
   local client = uv.tcp():connect(host, tonumber(port)).handle
   client:write(method:upper() .. ' ' .. path .. '?' .. query .. ' HTTP/1.1\n')
+  client:write('User-Agent: luajit-libuv\n')
   for header, value in pairs(headers) do
     client:write(header .. ': ' .. value .. '\n')
   end
-  client:write('\n')
+  client:write('Content-Length: ' .. #body .. '\n\n')
   client:write(body)
 
   local response = parse_http(client, libhttp_parser.HTTP_RESPONSE)

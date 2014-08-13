@@ -8,23 +8,6 @@ local http = require 'uv.http'
 
 uv.run(function()
   local server = http.listen('127.0.0.1', 7000, function(request)
-    assert(request.path == '/path/to/route')
-    assert(request.query == 'a=1&b=2')
-    return 200, {}, 'hello world'
-  end)
-
-  local client = uv.tcp():connect('127.0.0.1', 7000).handle
-  client:write('GET /path/to/route?a=1&b=2 HTTP/1.1\n\n')
-  local response = client:read() .. client:read() .. client:read()
-  assert(response:find('HTTP/1.1 200 OK'))
-  assert(response:find('hello world'))
-  client:close()
-
-  server:close()
-end)
-
-uv.run(function()
-  local server = http.listen('127.0.0.1', 7000, function(request)
     assert(request.method == 'GET')
     assert(request.path == '/path/to/route')
     assert(request.query == 'a=1&b=2')
@@ -55,8 +38,23 @@ uv.run(function()
   server:close()
 end)
 
+uv.run(function()
+  local server = http.listen('127.0.0.1', 7000, function(request)
+    assert(request.method == 'POST')
+    return 200, {}, ''
+  end)
+
+  local response = http.request{
+    url = 'http://127.0.0.1:7000/?a=1&b=2',
+    method = 'post', body = 'b=3&c=4',
+  }
+
+  server:close()
+end)
+os.exit()
+
 --------------------------------------------------------------------------------
--- middleware
+-- middleware pattern
 --------------------------------------------------------------------------------
 
 local function with_access_log(print, yield)

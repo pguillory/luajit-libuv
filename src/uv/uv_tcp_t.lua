@@ -10,9 +10,9 @@ local libuv = require 'uv/libuv'
 
 local uv_tcp_t = ctype('uv_tcp_t')
 
-function uv_tcp_t:bind(ip, port)
+function uv_tcp_t:bind(host, port)
   local addr = ffi.new('struct sockaddr_in')
-  libuv.uv_ip4_addr(ip, port, addr)
+  libuv.uv_ip4_addr(host, port, addr)
   libuv.uv_tcp_bind(self, ffi.cast('struct sockaddr*', addr), 0)
 end
 
