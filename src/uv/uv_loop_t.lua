@@ -18,9 +18,7 @@ function uv_loop_t:assert(r)
 end
 
 function uv_loop_t:run(callback)
-  self:timer():start(function()
-    assert(coroutine.resume(coroutine.create(callback)))
-  end)
+  self:timer():start(callback)
   libuv.uv_run(self, libuv.UV_RUN_DEFAULT)
 end
 

@@ -20,7 +20,10 @@ function async.func(cb_type, func)
       error('thread not found: ' .. id .. ' -- ' .. tostring(req))
     end
     threads[id] = nil
-    return assert(coroutine.resume(thread, ...))
+    local ok, err = coroutine.resume(thread, ...)
+    if not ok then
+      error(debug.traceback(thread, err), 0)
+    end
   end)
 
   return function(...)
@@ -41,7 +44,10 @@ function async.server(cb_type, func)
     local callback = callbacks[id]
     assert(callback, 'callback not found')
     local thread = coroutine.create(callback)
-    return assert(coroutine.resume(thread, self, ...))
+    local ok, err = coroutine.resume(thread, self, ...)
+    if not ok then
+      error(debug.traceback(thread, err), 0)
+    end
   end)
 
   return function(...)
