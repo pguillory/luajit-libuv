@@ -1,33 +1,26 @@
 local ffi = require 'ffi'
+local join = require 'uv/join'
 
 local async = {}
 
 function async.func(cb_type, func)
   local threads = {}
 
-  local function yield(req)
-    local id = tostring(req):sub(-8)
-    -- print('callback ', req, id)
+  local function yield(self)
+    local id = tostring(self):sub(-8)
     threads[id] = assert(coroutine.running(), 'not in a coroutine')
     return coroutine.yield()
   end
 
-  local callback = ffi.cast(cb_type, function(req, ...)
-    local id = tostring(req):sub(-8)
-    -- print('callback ', req, id)
-    local thread = threads[id]
-    if not thread then
-      error('thread not found: ' .. id .. ' -- ' .. tostring(req))
-    end
+  local resume = ffi.cast(cb_type, function(self, ...)
+    local id = tostring(self):sub(-8)
+    local thread = assert(threads[id], 'thread not found')
     threads[id] = nil
-    local ok, err = coroutine.resume(thread, ...)
-    if not ok then
-      error(debug.traceback(thread, err), 0)
-    end
+    return join(thread, ...)
   end)
 
   return function(...)
-    return func(yield, callback, ...)
+    return func(yield, resume, ...)
   end
 end
 
@@ -39,19 +32,15 @@ function async.server(cb_type, func)
     self.data = ffi.cast('void*', #callbacks)
   end
 
-  local callback = ffi.cast(cb_type, function(self, ...)
+  local resume = ffi.cast(cb_type, function(self, ...)
     local id = tonumber(ffi.cast('int', self.data))
-    local callback = callbacks[id]
-    assert(callback, 'callback not found')
+    local callback = assert(callbacks[id], 'callback not found')
     local thread = coroutine.create(callback)
-    local ok, err = coroutine.resume(thread, self, ...)
-    if not ok then
-      error(debug.traceback(thread, err), 0)
-    end
+    return join(thread, self, ...)
   end)
 
   return function(...)
-    return func(yield, callback, ...)
+    return func(yield, resume, ...)
   end
 end
 

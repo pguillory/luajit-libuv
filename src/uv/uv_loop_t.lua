@@ -19,7 +19,7 @@ end
 
 function uv_loop_t:run(callback)
   self:timer():start(callback)
-  libuv.uv_run(self, libuv.UV_RUN_DEFAULT)
+  self:assert(libuv.uv_run(self, libuv.UV_RUN_DEFAULT))
 end
 
 function uv_loop_t:stop()
