@@ -1,6 +1,7 @@
 require 'uv/cdef'
 local ffi = require 'ffi'
 local async = require 'uv/async'
+local async2 = require 'uv/async2'
 local ctype = require 'uv/ctype'
 local libuv = require 'uv/libuv'
 
@@ -29,20 +30,13 @@ end
 
 local uv_getaddrinfo_t = ctype('uv_getaddrinfo_t')
 
--- uv_getaddrinfo(uv_loop_t* loop,
---                              uv_getaddrinfo_t* req,
---                              uv_getaddrinfo_cb getaddrinfo_cb,
---                              const char* node,
---                              const char* service,
---                              const struct addrinfo* hints);
-
 ffi.cdef [[ uint16_t ntohs(uint16_t netshort); ]]
 
-uv_getaddrinfo_t.getaddrinfo = async.func('uv_getaddrinfo_cb', function(yield, callback, self, node, service)
+function uv_getaddrinfo_t:getaddrinfo(node, service)
   local hints = ffi.new('struct addrinfo')
   -- hints.ai_family = AF_INET
-  self.loop:assert(libuv.uv_getaddrinfo(self.loop, self, callback, node, service, hints))
-  local status, addrinfo = yield(self)
+  self.loop:assert(libuv.uv_getaddrinfo(self.loop, self, async2.uv_getaddrinfo_cb, node, service, hints))
+  local status, addrinfo = async2.yield(self)
   self.loop:assert(status)
   local addrs = {}
   local ai = addrinfo
@@ -57,6 +51,6 @@ uv_getaddrinfo_t.getaddrinfo = async.func('uv_getaddrinfo_cb', function(yield, c
   end
   libuv.uv_freeaddrinfo(addrinfo)
   return addrs
-end)
+end
 
 return uv_getaddrinfo_t
