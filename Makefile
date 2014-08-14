@@ -59,8 +59,8 @@ clean:
 
 test: run-tests
 run-tests:
-	LUA_PATH="src/?.lua;;" ${LUA} test/uv_test.lua
-	LUA_PATH="src/?.lua;;" ${LUA} test/fs_test.lua
-	LUA_PATH="src/?.lua;;" ${LUA} test/http_test.lua
-	LUA_PATH="src/?.lua;;" ${LUA} test/timer_test.lua
+	@LUA_PATH="src/?.lua;;" ${LUA} test/uv_test.lua
+	@LUA_PATH="src/?.lua;;" ${LUA} test/fs_test.lua
+	@LUA_PATH="src/?.lua;;" ${LUA} test/http_test.lua
+	@LUA_PATH="src/?.lua;;" ${LUA} test/timer_test.lua
 	@echo All tests passing
