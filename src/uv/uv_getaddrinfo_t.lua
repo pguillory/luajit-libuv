@@ -49,7 +49,7 @@ uv_getaddrinfo_t.getaddrinfo = async.func('uv_getaddrinfo_cb', function(yield, c
   while ai ~= ffi.NULL do
     if ai.ai_addr.sa_family == AF_INET then
       local addr = ffi.new('struct sockaddr_in')
-      ffi.copy(addr, ai.ai_addr, ffi.sizeof(addr))
+      ffi.copy(addr, ai.ai_addr, ai.ai_addrlen)
       -- print('addr: ', addr.sin_p)
       table.insert(addrs, addr)
     end

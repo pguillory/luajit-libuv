@@ -44,10 +44,14 @@ uv.run(function()
     return 200, {}, ''
   end)
 
-  local response = http.request{
-    url = 'http://127.0.0.1:7000/?a=1&b=2',
-    method = 'post', body = 'b=3&c=4',
-  }
+  for i = 1, 100 do
+    local response = http.request{
+      url = 'http://127.0.0.1:7000/?a=1&b=2',
+      method = 'post', body = 'b=3&c=4',
+    }
+    collectgarbage()
+  end
+  collectgarbage()
 
   server:close()
 end)

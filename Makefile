@@ -3,7 +3,14 @@ LUA_DIR=/usr/local
 LUA_LIBDIR=$(LUA_DIR)/lib/lua/5.1
 LUA_SHAREDIR=$(LUA_DIR)/share/lua/5.1
 
-all: src/uv/lib/libuv.min.h src/uv/lib/libhttp_parser.min.h
+all: src/uv/lib/libuv.min.h src/uv/lib/libhttp_parser.min.h src/uv/lib/libuv2.dylib
+
+################################################################################
+# libuv
+################################################################################
+
+src/uv/lib/libuv2.dylib: src/uv/libuv2.c libuv/include/uv.h
+	gcc -dynamiclib src/uv/libuv2.c -o src/uv/lib/libuv2.dylib -luv -L src/uv/lib
 
 ################################################################################
 # libuv

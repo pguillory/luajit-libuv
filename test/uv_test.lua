@@ -12,7 +12,6 @@ uv.run(function()
   server:listen(function(stream)
     assert(stream:read() == 'foo')
     stream:write('bar')
-    stream:close()
   end)
 
   local client = uv.tcp()

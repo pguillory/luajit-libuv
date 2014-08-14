@@ -276,7 +276,7 @@ function fs.tmpname()
 end
 
 function fs.cwd()
-  local buf = ffi.C.malloc(4096)
+  local buf = ffi.new('char[?]', 4096)
   local len = ffi.new('uint64_t[1]')
   len[0] = 4096
   assert(0 == libuv.uv_cwd(buf, len))

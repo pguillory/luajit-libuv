@@ -234,7 +234,6 @@ function Server:listen(callback)
     end
     stream:write('Content-Length: ' .. #body .. '\n\n')
     stream:write(body)
-    stream:close()
   end)
 end
 
@@ -268,7 +267,9 @@ function http.request(request)
   local headers = request.headers or {}
   local body    = request.body or ''
 
-  local client = uv.tcp():connect(host, tonumber(port)).handle
+  local tcp = uv.tcp()
+  local connect = tcp:connect(host, tonumber(port))
+  local client = connect.handle
   client:write(method:upper() .. ' ' .. path .. '?' .. query .. ' HTTP/1.1\n')
   client:write('Host: ' .. host .. '\n')
   client:write('User-Agent: luajit-libuv\n')

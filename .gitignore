@@ -1,3 +1,1 @@
-*.min.h
-libuv.*
-libhttp_parser.*
+/src/uv/lib
