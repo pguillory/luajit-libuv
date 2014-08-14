@@ -1,7 +1,7 @@
 require 'uv/cdef'
 local ffi = require 'ffi'
 local async = require 'uv/async'
-local async2 = require 'uv/async2'
+local async = require 'uv/async'
 local ctype = require 'uv/ctype'
 local libuv = require 'uv/libuv'
 
@@ -35,8 +35,8 @@ ffi.cdef [[ uint16_t ntohs(uint16_t netshort); ]]
 function uv_getaddrinfo_t:getaddrinfo(node, service)
   local hints = ffi.new('struct addrinfo')
   -- hints.ai_family = AF_INET
-  self.loop:assert(libuv.uv_getaddrinfo(self.loop, self, async2.uv_getaddrinfo_cb, node, service, hints))
-  local status, addrinfo = async2.yield(self)
+  self.loop:assert(libuv.uv_getaddrinfo(self.loop, self, async.uv_getaddrinfo_cb, node, service, hints))
+  local status, addrinfo = async.yield(self)
   self.loop:assert(status)
   local addrs = {}
   local ai = addrinfo

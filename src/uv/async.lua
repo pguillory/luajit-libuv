@@ -1,47 +1,28 @@
 local ffi = require 'ffi'
 local join = require 'uv/join'
 
-local async = {}
+local async, threads, id = {}, {}, 0
+setmetatable(async, async)
 
-function async.func(cb_type, func)
-  local threads = {}
-
-  local function yield(self)
-    local id = tostring(self):sub(-8)
-    threads[id] = assert(coroutine.running(), 'not in a coroutine')
-    return coroutine.yield()
+function async.yield(req)
+  while threads[id] do
+    id = bit.band(id + 1, 0xFFFFFFFFFFFF) -- lower 48 bits
   end
-
-  local resume = ffi.cast(cb_type, function(self, ...)
-    local id = tostring(self):sub(-8)
-    local thread = assert(threads[id], 'thread not found')
-    threads[id] = nil
-    return join(thread, ...)
-  end)
-
-  return function(...)
-    return func(yield, resume, ...)
-  end
+  req.data = ffi.cast('void*', id)
+  threads[id] = coroutine.running()
+  return coroutine.yield()
 end
 
-function async.server(cb_type, func)
-  local callbacks = {}
+function async.resume(req, ...)
+  local id = tonumber(ffi.cast('int', req.data))
+  local thread = threads[id]
+  threads[id] = nil
+  return join(thread, ...)
+end
 
-  local function yield(self, callback)
-    table.insert(callbacks, callback)
-    self.data = ffi.cast('void*', #callbacks)
-  end
-
-  local resume = ffi.cast(cb_type, function(self, ...)
-    local id = tonumber(ffi.cast('int', self.data))
-    local callback = assert(callbacks[id], 'callback not found')
-    local thread = coroutine.create(callback)
-    return join(thread, self, ...)
-  end)
-
-  return function(...)
-    return func(yield, resume, ...)
-  end
+function async:__index(ctype)
+  self[ctype] = ffi.cast(ctype, self.resume)
+  return self[ctype]
 end
 
 return async

@@ -1,7 +1,7 @@
 require 'uv/cdef'
 local ffi = require 'ffi'
 local async = require 'uv/async'
-local async2 = require 'uv/async2'
+local async = require 'uv/async'
 local ctype = require 'uv/ctype'
 local libuv = require 'uv/libuv'
 
@@ -12,15 +12,15 @@ local libuv = require 'uv/libuv'
 local uv_timer_t = ctype('uv_timer_t')
 
 function uv_timer_t:every(timeout, callback)
-  self.loop:assert(libuv.uv_timer_start(self, async2.uv_timer_cb, timeout, timeout))
+  self.loop:assert(libuv.uv_timer_start(self, async.uv_timer_cb, timeout, timeout))
   while true do
-    callback(self, async2.yield(self))
+    callback(self, async.yield(self))
   end
 end
 
 function uv_timer_t:sleep(timeout)
-  self.loop:assert(libuv.uv_timer_start(self, async2.uv_timer_cb, timeout, 0))
-  async2.yield(self)
+  self.loop:assert(libuv.uv_timer_start(self, async.uv_timer_cb, timeout, 0))
+  async.yield(self)
 end
 
 function uv_timer_t:stop()

@@ -1,7 +1,7 @@
 require 'uv/cdef'
 local ffi = require 'ffi'
 local async = require 'uv/async'
-local async2 = require 'uv/async2'
+local async = require 'uv/async'
 local ctype = require 'uv/ctype'
 local join = require 'uv/join'
 local libuv = require 'uv/libuv'
@@ -29,8 +29,8 @@ function uv_tcp_t:connect(host, port)
   end
   addr = ffi.cast('struct sockaddr*', addr)
 
-  self.loop:assert(libuv.uv_tcp_connect(connect, socket, addr, async2.uv_connect_cb))
-  local status = async2.yield(connect)
+  self.loop:assert(libuv.uv_tcp_connect(connect, socket, addr, async.uv_connect_cb))
+  local status = async.yield(connect)
   if status < 0 then
     self.loop:assert(status)
   end
@@ -38,8 +38,8 @@ function uv_tcp_t:connect(host, port)
 end
 
 function uv_tcp_t:read()
-  libuv2.uv2_tcp_read_start(self, libuv2.uv2_alloc_cb, async2.uv_read_cb)
-  local nread, buf = async2.yield(self)
+  libuv2.uv2_tcp_read_start(self, libuv2.uv2_alloc_cb, async.uv_read_cb)
+  local nread, buf = async.yield(self)
   libuv2.uv2_tcp_read_stop(self)
   local chunk = (nread < 0) and '' or ffi.string(buf.base, nread)
   ffi.C.free(buf.base)
@@ -51,15 +51,15 @@ function uv_tcp_t:write(content)
   local buf = ffi.new('uv_buf_t')
   buf.base = ffi.cast('char*', content)
   buf.len = #content
-  self.loop:assert(libuv2.uv2_tcp_write(req, self, buf, 1, async2.uv_write_cb))
-  self.loop:assert(async2.yield(req))
+  self.loop:assert(libuv2.uv2_tcp_write(req, self, buf, 1, async.uv_write_cb))
+  self.loop:assert(async.yield(req))
 end
 
 function uv_tcp_t:listen(on_connect)
   join(coroutine.create(function()
-    self.loop:assert(libuv2.uv2_tcp_listen(self, 128, async2.uv_connection_cb))
+    self.loop:assert(libuv2.uv2_tcp_listen(self, 128, async.uv_connection_cb))
     while true do
-      local status = async2.yield(self)
+      local status = async.yield(self)
       if tonumber(status) >= 0 then
         join(coroutine.create(function()
           local client = self.loop:tcp()
@@ -74,8 +74,8 @@ function uv_tcp_t:listen(on_connect)
 end
 
 function uv_tcp_t:close()
-  libuv2.uv2_tcp_close(self, async2.uv_close_cb)
-  async2.yield(self)
+  libuv2.uv2_tcp_close(self, async.uv_close_cb)
+  async.yield(self)
 end
 
 function uv_tcp_t:getsockname()
