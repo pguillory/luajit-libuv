@@ -260,13 +260,13 @@ function http.request(request)
     parse_url(request)
   end
 
-  local method = request.method or 'GET'
-  local host = request.host or error('host required', 2)
-  local port = request.port or 80
-  local path = request.path or '/?'
-  local query = request.query or ''
+  local method  = request.method or 'GET'
+  local host    = request.host or error('host required', 2)
+  local port    = request.port or 80
+  local path    = request.path or '/'
+  local query   = request.query or ''
   local headers = request.headers or {}
-  local body = request.body or ''
+  local body    = request.body or ''
 
   local client = uv.tcp():connect(host, tonumber(port)).handle
   client:write(method:upper() .. ' ' .. path .. '?' .. query .. ' HTTP/1.1\n')
