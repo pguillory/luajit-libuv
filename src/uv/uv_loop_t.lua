@@ -1,6 +1,7 @@
 require 'uv/cdef'
 local ffi = require 'ffi'
 local ctype = require 'uv/ctype'
+local join = require 'uv/join'
 local libuv = require 'uv/libuv'
 
 --------------------------------------------------------------------------------
@@ -17,7 +18,10 @@ function uv_loop_t:assert(r)
 end
 
 function uv_loop_t:run(callback)
-  self:timer():start(callback)
+  join(coroutine.create(function()
+    self:timer():sleep(0)
+    return callback()
+  end))
   self:assert(libuv.uv_run(self, libuv.UV_RUN_DEFAULT))
 end
 

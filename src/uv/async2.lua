@@ -1,4 +1,5 @@
 local ffi = require 'ffi'
+local join = require 'uv/join'
 
 local async2, threads, id = {}, {}, 0
 setmetatable(async2, async2)
@@ -16,10 +17,7 @@ function async2.resume(req, ...)
   local id = tonumber(ffi.cast('int', req.data))
   local thread = threads[id]
   threads[id] = nil
-  local ok, err = coroutine.resume(thread, ...)
-  if not ok then
-    return error(debug.traceback(thread, err), 0)
-  end
+  return join(thread, ...)
 end
 
 function async2:__index(ctype)
