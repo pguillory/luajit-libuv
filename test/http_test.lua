@@ -51,7 +51,13 @@ uv.run(function()
 
   server:close()
 end)
-os.exit()
+
+-- uv.run(function()
+--   local response = http.request{
+--     url = 'http://pygments.appspot.com/',
+--     method = 'post', body = 'lang=lua&code=print',
+--   }
+-- end)
 
 --------------------------------------------------------------------------------
 -- middleware pattern

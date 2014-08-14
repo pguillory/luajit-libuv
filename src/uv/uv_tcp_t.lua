@@ -16,13 +16,15 @@ function uv_tcp_t:bind(host, port)
   libuv.uv_tcp_bind(self, ffi.cast('struct sockaddr*', addr), 0)
 end
 
-uv_tcp_t.connect = async.func('uv_connect_cb', function(yield, callback, self, ip, port)
+uv_tcp_t.connect = async.func('uv_connect_cb', function(yield, callback, self, host, port)
   local socket = self.loop:tcp()
   local connect = ffi.new('uv_connect_t')
   local addr = ffi.new('struct sockaddr_in')
-  libuv.uv_ip4_addr(ip, port, addr)
+  if libuv.uv_ip4_addr(host, port, addr) ~= 0 then
+    addr = self.loop:getaddrinfo():getaddrinfo(host, tostring(port))[1]
+  end
 
-  libuv.uv_tcp_connect(connect, socket, ffi.cast('struct sockaddr*', addr), callback)
+  self.loop:assert(libuv.uv_tcp_connect(connect, socket, ffi.cast('struct sockaddr*', addr), callback))
   local status = yield(connect)
   if status < 0 then
     self.loop:assert(status)

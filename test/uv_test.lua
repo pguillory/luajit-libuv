@@ -23,3 +23,20 @@ uv.run(function()
 
   server:close()
 end)
+
+uv.run(function()
+  local getaddrinfo = uv.getaddrinfo()
+
+  local addrs = getaddrinfo:getaddrinfo('123.123.123.123', 'https')
+  assert(#addrs == 2) -- why?
+  for _, addr in ipairs(addrs) do
+    assert(addr:ip() == '123.123.123.123')
+    assert(addr:port() == 443)
+  end
+
+  -- local addrs = getaddrinfo:getaddrinfo('google.com', 'http')
+  -- for _, addr in ipairs(addrs) do
+  --   assert(addr:ip():match('^74%.'))
+  --   assert(addr:port() == 80)
+  -- end
+end)

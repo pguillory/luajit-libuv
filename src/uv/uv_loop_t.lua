@@ -44,4 +44,21 @@ function uv_loop_t:timer()
   return timer
 end
 
+-- function uv_loop_t:addr(host, port, service)
+--     local addr = ffi.new('struct sockaddr_in')
+--     self:assert(libuv.uv_ip4_addr(host, port, addr))
+--     return addr
+--   else
+--     local getaddrinfo = ffi.new('uv_getaddrinfo_t')
+--     getaddrinfo.loop = self
+--     return getaddrinfo:getaddrinfo(node, service)
+--   end
+-- end
+
+function uv_loop_t:getaddrinfo()
+  local getaddrinfo = ffi.new('uv_getaddrinfo_t')
+  getaddrinfo.loop = self
+  return getaddrinfo
+end
+
 return uv_loop_t
