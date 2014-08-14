@@ -67,39 +67,34 @@ end)
 -- middleware pattern
 --------------------------------------------------------------------------------
 
-local function with_access_log(print, yield)
-  return function(request)
-    local status, headers, body = yield(request)
-
-    print(string.format('%s - - [%s] "%s %s" %s %i %q %q',
-          request.socket:getpeername(),
-          os.date("!%Y-%m-%dT%TZ"),
-          request.method, request.url, status, #body,
-          request.headers['Referer'] or '-',
-          request.headers['User-Agent'] or '-'))
-
-    return status, headers, body
-  end
-end
-
 uv.run(function()
   local access_log = ''
-  local function append_to_log(line)
-    access_log = access_log .. line .. '\n'
+
+  local function with_logging(yield)
+    return function(request)
+      local status, headers, body = yield(request)
+
+      access_log = access_log .. string.format('%s - - [%s] "%s %s" %s %i %q %q\n',
+          request.socket:getpeername(),
+          '1999-12-31T23:59:59Z', -- os.date("!%Y-%m-%dT%TZ"),
+          request.method,
+          request.url,
+          status,
+          #body,
+          request.headers['Referer'] or '-',
+          request.headers['User-Agent'] or '-')
+
+      return status, headers, body
+    end
   end
 
-  local server = http.server()
-  server:bind('127.0.0.1', 7000)
-  server:listen(with_access_log(append_to_log, function(request)
+  local server = http.listen('127.0.0.1', 7000, with_logging(function(request)
     return 200, {}, 'hello world'
   end))
 
-  local client = uv.tcp():connect('127.0.0.1', 7000).handle
-  client:write('GET / HTTP/1.1\n\n')
-  local response = client:read()
-  client:close()
+  http.request { host = '127.0.0.1', port = 7000 }
 
-  assert(access_log:match('^127.0.0.1 %- %- %[.+%] "GET /" 200 11 "%-" "%-"\n$'))
+  assert(access_log == '127.0.0.1 - - [1999-12-31T23:59:59Z] "GET /?" 200 11 "-" "luajit-libuv"\n')
 
   server:close()
 end)
