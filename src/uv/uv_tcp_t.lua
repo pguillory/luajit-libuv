@@ -3,6 +3,7 @@ local ffi = require 'ffi'
 local async = require 'uv/async'
 local async2 = require 'uv/async2'
 local ctype = require 'uv/ctype'
+local join = require 'uv/join'
 local libuv = require 'uv/libuv'
 local libuv2 = require 'uv/libuv2'
 
@@ -54,18 +55,23 @@ function uv_tcp_t:write(content)
   self.loop:assert(async2.yield(req))
 end
 
-uv_tcp_t.listen = async.server('uv_connection_cb', function(yield, callback, self, on_connect)
-  self.loop:assert(libuv2.uv2_tcp_listen(self, 128, callback))
-  yield(self, function(self, status)
-    if tonumber(status) >= 0 then
-      local client = self.loop:tcp()
-      if 0 == tonumber(libuv2.uv2_tcp_accept(self, client)) then
-        on_connect(client)
+function uv_tcp_t:listen(on_connect)
+  join(coroutine.create(function()
+    self.loop:assert(libuv2.uv2_tcp_listen(self, 128, async2.uv_connection_cb))
+    while true do
+      local status = async2.yield(self)
+      if tonumber(status) >= 0 then
+        join(coroutine.create(function()
+          local client = self.loop:tcp()
+          if 0 == tonumber(libuv2.uv2_tcp_accept(self, client)) then
+            on_connect(client)
+          end
+          client:close()
+        end))
       end
-      client:close()
     end
-  end)
-end)
+  end))
+end
 
 function uv_tcp_t:close()
   libuv2.uv2_tcp_close(self, async2.uv_close_cb)

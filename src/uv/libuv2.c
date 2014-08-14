@@ -15,7 +15,7 @@ void uv2_tcp_close(uv_tcp_t* tcp, uv_close_cb close_cb) {
   return uv_close((uv_handle_t*) tcp, close_cb);
 }
 
-int uv2_tcp_accept(uv_stream_t* server, uv_tcp_t* client) {
+int uv2_tcp_accept(uv_tcp_t* server, uv_tcp_t* client) {
   return uv_accept((uv_stream_t*) server, (uv_stream_t*) client);
 }
 
