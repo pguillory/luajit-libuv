@@ -270,6 +270,7 @@ function http.request(request)
 
   local client = uv.tcp():connect(host, tonumber(port)).handle
   client:write(method:upper() .. ' ' .. path .. '?' .. query .. ' HTTP/1.1\n')
+  client:write('Host: ' .. host .. '\n')
   client:write('User-Agent: luajit-libuv\n')
   for header, value in pairs(headers) do
     client:write(header .. ': ' .. value .. '\n')
