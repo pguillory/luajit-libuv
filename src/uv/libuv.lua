@@ -13,9 +13,11 @@ do
 end
 
 local ok, lib = pcall(function() return ffi.load(dir .. 'lib/libuv.dylib') end)
-if ok then return lib end
+if ok and lib then return lib end
 
 local ok, lib = pcall(function() return ffi.load(dir .. 'lib/libuv.so') end)
-if ok then return lib end
+if ok and lib then return lib end
 
-assert('libuv not found')
+error('libuv not found')
+
+-- return require 'uv/libuv2'

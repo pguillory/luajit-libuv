@@ -3,14 +3,15 @@ LUA_DIR=/usr/local
 LUA_LIBDIR=$(LUA_DIR)/lib/lua/5.1
 LUA_SHAREDIR=$(LUA_DIR)/share/lua/5.1
 
-all: src/uv/lib/libuv.min.h src/uv/lib/libhttp_parser.min.h src/uv/lib/libuv2.dylib
+FILES=src/uv/lib/libuv.dylib \
+	  src/uv/lib/libuv.min.h \
+	  src/uv/lib/libuv2.dylib \
+	  src/uv/lib/libuv2.min.h \
+	  src/uv/lib/libhttp_parser.dylib \
+	  src/uv/lib/libhttp_parser.so \
+	  src/uv/lib/libhttp_parser.min.h
 
-################################################################################
-# libuv
-################################################################################
-
-src/uv/lib/libuv2.dylib: src/uv/libuv2.c libuv/include/uv.h
-	gcc -dynamiclib src/uv/libuv2.c -o src/uv/lib/libuv2.dylib -luv -L src/uv/lib
+all: $(FILES)
 
 ################################################################################
 # libuv
@@ -26,14 +27,23 @@ libuv/configure: libuv/include/uv.h
 libuv/Makefile: libuv/configure
 	cd libuv && ./configure
 
-libuv/.libs: libuv/Makefile
+libuv/.libs/libuv.a: libuv/Makefile
 	cd libuv && make
 
-src/uv/lib/libuv.a: libuv/.libs
-	cp -f libuv/.libs/libuv.* src/uv/lib/
+libuv/.libs/libuv.dylib: libuv/.libs/libuv.a
 
-src/uv/lib/libuv.min.h: src/uv/lib/libuv.a
-	gcc -E libuv/include/uv.h | grep -v '^ *#' > src/uv/lib/libuv.min.h
+src/uv/lib/libuv.dylib: libuv/.libs/libuv.dylib
+	cp libuv/.libs/libuv.dylib $@
+
+src/uv/lib/libuv.min.h: libuv/include/uv.h
+	gcc -E libuv/include/uv.h | grep -v '^ *#' > $@
+
+src/uv/lib/libuv2.dylib: libuv/.libs/libuv.a src/uv/libuv2.c
+	gcc -dynamiclib libuv/.libs/libuv.a src/uv/libuv2.c -o $@
+
+src/uv/lib/libuv2.min.h: src/uv/libuv2.h
+	gcc -E src/uv/libuv2.h | grep -v '^ *#' > $@
+
 
 ################################################################################
 # http-parser
@@ -47,11 +57,13 @@ http-parser/libhttp_parser.so.2.3:
 	cd http-parser && make library
 
 src/uv/lib/libhttp_parser.dylib: http-parser/libhttp_parser.so.2.3
-	cp http-parser/libhttp_parser.so.2.3 src/uv/lib/libhttp_parser.dylib
-	cp http-parser/libhttp_parser.so.2.3 src/uv/lib/libhttp_parser.so
+	cp http-parser/libhttp_parser.so.2.3 $@
+
+src/uv/lib/libhttp_parser.so: http-parser/libhttp_parser.so.2.3
+	cp http-parser/libhttp_parser.so.2.3 $@
 
 src/uv/lib/libhttp_parser.min.h: src/uv/lib/libhttp_parser.dylib
-	gcc -E http-parser/http_parser.h | grep -v '^ *#' > src/uv/lib/libhttp_parser.min.h
+	gcc -E http-parser/http_parser.h | grep -v '^ *#' > $@
 
 ################################################################################
 # etc...
