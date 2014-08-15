@@ -29,12 +29,6 @@ function uv_loop_t:stop()
   libuv.uv_stop(self)
 end
 
-function uv_loop_t:fs()
-  local fs = ffi.new('uv_fs_t')
-  fs.loop = self
-  return fs
-end
-
 function uv_loop_t:timer()
   local timer = ffi.new('uv_timer_t')
   libuv.uv_timer_init(self, timer)

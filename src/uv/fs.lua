@@ -2,6 +2,7 @@ local class = require 'uv/class'
 local ffi = require 'ffi'
 local libuv = require 'uv/libuv'
 local uv = require 'uv'
+local uv_fs_t = require 'uv/uv_fs_t'
 
 ffi.cdef [[
   mode_t umask(mode_t mask);
@@ -171,32 +172,32 @@ local File = class(function(descriptor)
 end)
 
 function File:read()
-  return uv.fs():read(self.descriptor)
+  return uv_fs_t():read(self.descriptor)
 end
 
 function File:close()
-  return uv.fs():close(self.descriptor)
+  return uv_fs_t():close(self.descriptor)
 end
 
 function File:write(buffer)
-  return uv.fs():write(self.descriptor, buffer)
+  return uv_fs_t():write(self.descriptor, buffer)
 end
 
 function File:chmod(mode)
   local mode = mode_atoi[mode or '700']
-  return uv.fs():fchmod(self.descriptor, mode)
+  return uv_fs_t():fchmod(self.descriptor, mode)
 end
 
 function File:chown(uid, gid)
-  return uv.fs():fchown(self.descriptor, uid, gid)
+  return uv_fs_t():fchown(self.descriptor, uid, gid)
 end
 
 function File:sync()
-  return uv.fs():fsync(self.descriptor)
+  return uv_fs_t():fsync(self.descriptor)
 end
 
 function File.stat()
-  return Stat(uv.fs():fstat(self.descriptor))
+  return Stat(uv_fs_t():fstat(self.descriptor))
 end
 
 --------------------------------------------------------------------------------
@@ -209,55 +210,55 @@ function fs.open(path, flags, mode)
   local flags = flags_atoi[flags or 'r']
   local mode = mode_atoi[mode or '700']
   local mask = ffi.C.umask(0)
-  local descriptor = uv.fs():open(path, flags, mode)
+  local descriptor = uv_fs_t():open(path, flags, mode)
   ffi.C.umask(mask)
   return File(descriptor)
 end
 
 function fs.unlink(path)
-  return uv.fs():unlink(path)
+  return uv_fs_t():unlink(path)
 end
 
 function fs.mkdir(path, mode)
   local mode = mode_atoi[mode or '700']
-  return uv.fs():mkdir(path, mode)
+  return uv_fs_t():mkdir(path, mode)
 end
 
 function fs.rmdir(path)
-  return uv.fs():rmdir(path)
+  return uv_fs_t():rmdir(path)
 end
 
 function fs.chmod(path, mode)
   local mode = mode_atoi[mode or '700']
-  return uv.fs():chmod(path, mode)
+  return uv_fs_t():chmod(path, mode)
 end
 
 function fs.chown(path, uid, gid)
-  return uv.fs():chown(path, uid, gid)
+  return uv_fs_t():chown(path, uid, gid)
 end
 
 function fs.stat(path)
-  return Stat(uv.fs():stat(path))
+  return Stat(uv_fs_t():stat(path))
 end
 
 function fs.lstat(path)
-  return uv.fs():lstat(path)
+  return uv_fs_t():lstat(path)
 end
 
 function fs.rename(path, new_path)
-  return uv.fs():rename(path, new_path)
+  return uv_fs_t():rename(path, new_path)
 end
 
 function fs.link(path, new_path)
-  return uv.fs():link(path, new_path)
+  return uv_fs_t():link(path, new_path)
 end
 
 function fs.symlink(path, new_path)
-  return uv.fs():symlink(path, new_path, 0)
+  return uv_fs_t():symlink(path, new_path, 0)
 end
 
 function fs.readlink(path)
-  return uv.fs():readlink(path)
+  return uv_fs_t():readlink(path)
 end
 
 function fs.readfile(path)

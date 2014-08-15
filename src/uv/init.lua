@@ -21,10 +21,6 @@ function uv.run(callback)
   return uv.loop:run(callback)
 end
 
-function uv.fs()
-  return uv.loop:fs()
-end
-
 function uv.timer()
   return uv.loop:timer()
 end

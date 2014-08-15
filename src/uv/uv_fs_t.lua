@@ -10,7 +10,11 @@ local uv_buf_t = require 'uv/uv_buf_t'
 -- uv_fs_t
 --------------------------------------------------------------------------------
 
-local uv_fs_t = ctype('uv_fs_t')
+local uv_fs_t = ctype('uv_fs_t', function(loop)
+  local self = ffi.cast('uv_fs_t*', ffi.C.malloc(ffi.sizeof('uv_fs_t')))
+  self.loop = loop or libuv.uv_default_loop()
+  return self
+end)
 
 function uv_fs_t:open(path, flags, mode)
   self.loop:assert(libuv.uv_fs_open(self.loop, self, path, flags, mode, async.uv_fs_cb))
