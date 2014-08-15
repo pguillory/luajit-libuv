@@ -28,7 +28,11 @@ end
 -- uv_getaddrinfo_t
 --------------------------------------------------------------------------------
 
-local uv_getaddrinfo_t = ctype('uv_getaddrinfo_t')
+local uv_getaddrinfo_t = ctype('uv_getaddrinfo_t', function(loop)
+  local self = ffi.cast('uv_getaddrinfo_t*', ffi.C.malloc(ffi.sizeof('uv_getaddrinfo_t')))
+  self.loop = loop or libuv.uv_default_loop()
+  return self
+end)
 
 ffi.cdef [[ uint16_t ntohs(uint16_t netshort); ]]
 

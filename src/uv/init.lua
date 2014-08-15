@@ -25,8 +25,4 @@ function uv.timer()
   return uv.loop:timer()
 end
 
-function uv.getaddrinfo()
-  return uv.loop:getaddrinfo()
-end
-
 return uv

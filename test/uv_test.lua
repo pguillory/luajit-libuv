@@ -1,6 +1,7 @@
 require 'strict'
 local uv = require 'uv'
 local uv_tcp_t = require 'uv/uv_tcp_t'
+local uv_getaddrinfo_t = require 'uv/uv_getaddrinfo_t'
 
 for i = 1, 1000 do
   uv.run(function()
@@ -25,7 +26,7 @@ uv.run(function()
 end)
 
 uv.run(function()
-  local getaddrinfo = uv.getaddrinfo()
+  local getaddrinfo = uv_getaddrinfo_t()
 
   local addrs = getaddrinfo:getaddrinfo('123.123.123.123', 'https')
   assert(#addrs == 2) -- why?
