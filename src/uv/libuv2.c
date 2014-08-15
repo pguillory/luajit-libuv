@@ -34,3 +34,7 @@ int uv2_tcp_write(uv_write_t* req, uv_tcp_t* tcp, const uv_buf_t bufs[], unsigne
 int uv2_tcp_listen(uv_tcp_t* stream, int backlog, uv_connection_cb cb) {
   return uv_listen((uv_stream_t*) stream, backlog, cb);
 }
+
+int uv2_cwd(uv_buf_t* buf) {
+  return uv_cwd(buf->base, &buf->len);
+}

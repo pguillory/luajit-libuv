@@ -7,3 +7,4 @@ int uv2_tcp_read_start(uv_tcp_t*, uv_alloc_cb alloc_cb, uv_read_cb read_cb);
 int uv2_tcp_read_stop(uv_tcp_t*);
 int uv2_tcp_write(uv_write_t* req, uv_tcp_t* tcp, const uv_buf_t bufs[], unsigned int nbufs, uv_write_cb cb);
 int uv2_tcp_listen(uv_tcp_t* stream, int backlog, uv_connection_cb cb);
+int uv2_cwd(uv_buf_t* buf);

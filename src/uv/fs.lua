@@ -1,8 +1,10 @@
 local class = require 'uv/class'
 local ffi = require 'ffi'
 local libuv = require 'uv/libuv'
+local libuv2 = require 'uv/libuv2'
 local uv = require 'uv'
 local uv_fs_t = require 'uv/uv_fs_t'
+local uv_buf_t = require 'uv/uv_buf_t'
 
 ffi.cdef [[
   mode_t umask(mode_t mask);
@@ -277,11 +279,11 @@ function fs.tmpname()
 end
 
 function fs.cwd()
-  local buf = ffi.new('char[?]', 4096)
-  local len = ffi.new('uint64_t[1]')
-  len[0] = 4096
-  assert(0 == libuv.uv_cwd(buf, len))
-  return ffi.string(buf)
+  local buf = uv_buf_t()
+  assert(0 == libuv2.uv2_cwd(buf))
+  local cwd = ffi.string(buf.base, buf.len)
+  buf:free()
+  return cwd
 end
 
 function fs.chdir(dir)
