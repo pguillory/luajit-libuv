@@ -5,6 +5,7 @@ local async = require 'uv/async'
 local ctype = require 'uv/ctype'
 local libuv = require 'uv/libuv'
 local libuv2 = require 'uv/libuv2'
+local uv_buf_t = require 'uv/uv_buf_t'
 
 --------------------------------------------------------------------------------
 -- uv_stream_t
@@ -23,11 +24,10 @@ end
 
 function uv_stream_t:write(content)
   local req = ffi.new('uv_write_t')
-  local buf = ffi.new('uv_buf_t')
-  buf.base = ffi.cast('char*', content)
-  buf.len = #content
+  local buf = uv_buf_t(content, #content)
   self.loop:assert(libuv.uv_write(req, self, buf, 1, async.uv_write_cb))
   self.loop:assert(async.yield(req))
+  buf:free()
 end
 
 function uv_stream_t:close()

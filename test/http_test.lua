@@ -49,7 +49,7 @@ uv.run(function()
       url = 'http://127.0.0.1:7000/?a=1&b=2',
       method = 'post', body = 'b=3&c=4',
     }
-    -- collectgarbage()
+    collectgarbage()
   end
   collectgarbage()
 

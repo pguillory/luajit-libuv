@@ -4,6 +4,7 @@ local async = require 'uv/async'
 local async = require 'uv/async'
 local ctype = require 'uv/ctype'
 local libuv = require 'uv/libuv'
+local uv_buf_t = require 'uv/uv_buf_t'
 
 --------------------------------------------------------------------------------
 -- uv_fs_t
@@ -23,9 +24,7 @@ function uv_fs_t:open(path, flags, mode)
 end
 
 function uv_fs_t:read(file)
-  local buf = ffi.new('uv_buf_t')
-  buf.base = ffi.C.malloc(4096)
-  buf.len = 4096
+  local buf = uv_buf_t()
   self.loop:assert(libuv.uv_fs_read(self.loop, self, file, buf, 1, -1, async.uv_fs_cb))
   async.yield(self)
   local nread = tonumber(self.result)
@@ -33,7 +32,7 @@ function uv_fs_t:read(file)
     error(ffi.string(libuv.uv_strerror(self.result)))
   end
   local chunk = ffi.string(buf.base, nread)
-  ffi.C.free(buf.base)
+  buf:free()
   libuv.uv_fs_req_cleanup(self)
   return chunk
 end
@@ -59,11 +58,10 @@ function uv_fs_t:unlink(path)
 end
 
 function uv_fs_t:write(file, buffer)
-  local buf = ffi.new('uv_buf_t')
-  buf.base = ffi.cast('char*', buffer)
-  buf.len = #buffer
+  local buf = uv_buf_t(buffer, #buffer)
   self.loop:assert(libuv.uv_fs_write(self.loop, self, file, buf, 1, -1, async.uv_fs_cb))
   async.yield(self)
+  buf:free()
   local status = tonumber(self.result)
   if status < 0 then
     error(ffi.string(libuv.uv_strerror(self.result)))

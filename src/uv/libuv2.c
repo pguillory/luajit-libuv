@@ -31,11 +31,6 @@ int uv2_tcp_write(uv_write_t* req, uv_tcp_t* tcp, const uv_buf_t bufs[], unsigne
   return uv_write(req, (uv_stream_t*) tcp, bufs, nbufs, cb);
 }
 
-// local buf = ffi.new('uv_buf_t')
-// buf.base = ffi.cast('char*', content)
-// buf.len = #content
-// self.loop:assert(libuv2.uv2_tcp_write(req, self, content, #content, 1, callback))
-
 int uv2_tcp_listen(uv_tcp_t* stream, int backlog, uv_connection_cb cb) {
   return uv_listen((uv_stream_t*) stream, backlog, cb);
 }
