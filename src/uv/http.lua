@@ -268,8 +268,7 @@ function http.request(request)
   local body    = request.body or ''
 
   local tcp = uv_tcp_t()
-  local connect = tcp:connect(host, tonumber(port))
-  local client = connect.handle
+  local client = tcp:connect(host, tonumber(port))
   client:write(method:upper() .. ' ' .. path .. '?' .. query .. ' HTTP/1.1\n')
   client:write('Host: ' .. host .. '\n')
   client:write('User-Agent: luajit-libuv\n')

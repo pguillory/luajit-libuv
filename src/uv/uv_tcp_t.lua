@@ -7,6 +7,7 @@ local join = require 'uv/join'
 local libuv = require 'uv/libuv'
 local libuv2 = require 'uv/libuv2'
 local uv_buf_t = require 'uv/uv_buf_t'
+local uv_connect_t = require 'uv/uv_connect_t'
 
 --------------------------------------------------------------------------------
 -- uv_tcp_t
@@ -27,7 +28,7 @@ end
 
 function uv_tcp_t:connect(host, port)
   local socket = uv_tcp_t(self.loop)
-  local connect = ffi.new('uv_connect_t')
+  local connect = uv_connect_t()
   local addr = ffi.new('struct sockaddr_in')
   if libuv.uv_ip4_addr(host, port, addr) ~= 0 then
     addr = self.loop:getaddrinfo():getaddrinfo(host, tostring(port))[1]
@@ -39,7 +40,9 @@ function uv_tcp_t:connect(host, port)
   if status < 0 then
     self.loop:assert(status)
   end
-  return connect
+  local handle = connect.handle
+  connect:free()
+  return handle
 end
 
 function uv_tcp_t:read()

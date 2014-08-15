@@ -17,7 +17,7 @@ uv.run(function()
   end)
 
   local client = uv_tcp_t()
-  local stream = client:connect('127.0.0.1', 7000).handle
+  local stream = client:connect('127.0.0.1', 7000)
   stream:write('foo')
   assert(stream:read() == 'bar')
   stream:close()
