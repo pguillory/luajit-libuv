@@ -11,7 +11,11 @@ local libuv2 = require 'uv/libuv2'
 -- uv_tcp_t
 --------------------------------------------------------------------------------
 
-local uv_tcp_t = ctype('uv_tcp_t')
+local uv_tcp_t = ctype('uv_tcp_t', function(loop)
+  local self = ffi.cast('uv_tcp_t*', ffi.C.malloc(ffi.sizeof('uv_tcp_t')))
+  libuv.uv_tcp_init(loop or libuv.uv_default_loop(), self)
+  return self
+end)
 
 function uv_tcp_t:bind(host, port)
   local addr = ffi.new('struct sockaddr_in')
@@ -21,7 +25,7 @@ function uv_tcp_t:bind(host, port)
 end
 
 function uv_tcp_t:connect(host, port)
-  local socket = self.loop:tcp()
+  local socket = uv_tcp_t(self.loop)
   local connect = ffi.new('uv_connect_t')
   local addr = ffi.new('struct sockaddr_in')
   if libuv.uv_ip4_addr(host, port, addr) ~= 0 then
@@ -62,7 +66,7 @@ function uv_tcp_t:listen(on_connect)
       local status = async.yield(self)
       if tonumber(status) >= 0 then
         join(coroutine.create(function()
-          local client = self.loop:tcp()
+          local client = uv_tcp_t(self.loop)
           if 0 == tonumber(libuv2.uv2_tcp_accept(self, client)) then
             on_connect(client)
           end
@@ -76,6 +80,7 @@ end
 function uv_tcp_t:close()
   libuv2.uv2_tcp_close(self, async.uv_close_cb)
   async.yield(self)
+  ffi.C.free(self)
 end
 
 function uv_tcp_t:getsockname()

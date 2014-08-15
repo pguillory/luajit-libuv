@@ -1,5 +1,6 @@
 require 'strict'
 local uv = require 'uv'
+local uv_tcp_t = require 'uv/uv_tcp_t'
 
 for i = 1, 1000 do
   uv.run(function()
@@ -7,14 +8,14 @@ for i = 1, 1000 do
 end
 
 uv.run(function()
-  local server = uv.tcp()
+  local server = uv_tcp_t()
   server:bind('127.0.0.1', 7000)
   server:listen(function(stream)
     assert(stream:read() == 'foo')
     stream:write('bar')
   end)
 
-  local client = uv.tcp()
+  local client = uv_tcp_t()
   local stream = client:connect('127.0.0.1', 7000).handle
   stream:write('foo')
   assert(stream:read() == 'bar')

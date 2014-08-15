@@ -25,10 +25,6 @@ function uv.fs()
   return uv.loop:fs()
 end
 
-function uv.tcp()
-  return uv.loop:tcp()
-end
-
 function uv.timer()
   return uv.loop:timer()
 end

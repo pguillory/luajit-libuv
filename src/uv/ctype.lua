@@ -1,13 +1,22 @@
 local ffi = require 'ffi'
 
-function ctype(name, destructor)
-  local ctype, mt = {}, {}
-  ctype.__index = ctype
-  ffi.metatype(name, ctype)
-  function mt:__call(cdata)
-    return ffi.gc(cdata, destructor or ffi.C.free)
+local function ctype(name, constructor, destructor)
+  local metatype = {}
+  local metatable = {}
+  metatype.__index = metatype
+  local ctype = ffi.metatype(name, metatype)
+  local sizeof = ffi.sizeof(ctype)
+  assert(sizeof > 0)
+  if constructor then
+    function metatable:__call(...)
+      return constructor(...)
+    end
+  else
+    function metatable:__call(...)
+      return ctype(...)
+    end
   end
-  return setmetatable(ctype, mt)
+  return setmetatable(metatype, metatable)
 end
 
 return ctype

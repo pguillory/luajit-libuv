@@ -2,6 +2,7 @@ local class = require 'uv/class'
 local ffi = require 'ffi'
 local libhttp_parser = require 'uv/libhttp_parser'
 local uv = require 'uv'
+local uv_tcp_t = require 'uv/uv_tcp_t'
 
 --------------------------------------------------------------------------------
 -- status_codes
@@ -244,7 +245,7 @@ end
 local http = {}
 
 function http.server()
-  return Server(uv.tcp())
+  return Server(uv_tcp_t())
 end
 
 function http.listen(host, port, callback)
@@ -267,7 +268,7 @@ function http.request(request)
   local headers = request.headers or {}
   local body    = request.body or ''
 
-  local tcp = uv.tcp()
+  local tcp = uv_tcp_t()
   local connect = tcp:connect(host, tonumber(port))
   local client = connect.handle
   client:write(method:upper() .. ' ' .. path .. '?' .. query .. ' HTTP/1.1\n')

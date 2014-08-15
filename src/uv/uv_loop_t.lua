@@ -29,12 +29,6 @@ function uv_loop_t:stop()
   libuv.uv_stop(self)
 end
 
-function uv_loop_t:tcp()
-  local tcp = ffi.new('uv_tcp_t')
-  libuv.uv_tcp_init(self, tcp)
-  return tcp
-end
-
 function uv_loop_t:fs()
   local fs = ffi.new('uv_fs_t')
   fs.loop = self
