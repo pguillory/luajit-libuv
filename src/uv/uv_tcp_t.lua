@@ -8,6 +8,7 @@ local libuv = require 'uv/libuv'
 local libuv2 = require 'uv/libuv2'
 local uv_buf_t = require 'uv/uv_buf_t'
 local uv_connect_t = require 'uv/uv_connect_t'
+local uv_getaddrinfo_t = require 'uv/uv_getaddrinfo_t'
 
 --------------------------------------------------------------------------------
 -- uv_tcp_t
@@ -31,7 +32,9 @@ function uv_tcp_t:connect(host, port)
   local connect = uv_connect_t()
   local addr = ffi.new('struct sockaddr_in')
   if libuv.uv_ip4_addr(host, port, addr) ~= 0 then
-    addr = self.loop:getaddrinfo():getaddrinfo(host, tostring(port))[1]
+    local gai = uv_getaddrinfo_t(self.loop)
+    addr = gai:getaddrinfo(host, tostring(port))[1]
+    gai:free()
   end
   addr = ffi.cast('struct sockaddr*', addr)
 

@@ -34,6 +34,10 @@ local uv_getaddrinfo_t = ctype('uv_getaddrinfo_t', function(loop)
   return self
 end)
 
+function uv_getaddrinfo_t:free()
+  ffi.C.free(self)
+end
+
 ffi.cdef [[ uint16_t ntohs(uint16_t netshort); ]]
 
 function uv_getaddrinfo_t:getaddrinfo(node, service)
