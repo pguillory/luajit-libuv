@@ -17,22 +17,12 @@ function uv_loop_t:assert(r)
   return tonumber(r)
 end
 
-function uv_loop_t:run(callback)
-  join(coroutine.create(function()
-    self:timer():sleep(0)
-    return callback()
-  end))
+function uv_loop_t:run()
   self:assert(libuv.uv_run(self, libuv.UV_RUN_DEFAULT))
 end
 
 function uv_loop_t:stop()
   libuv.uv_stop(self)
-end
-
-function uv_loop_t:timer()
-  local timer = ffi.new('uv_timer_t')
-  libuv.uv_timer_init(self, timer)
-  return timer
 end
 
 return uv_loop_t

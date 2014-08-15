@@ -15,14 +15,13 @@ local uv_timer_t = require 'uv/uv_timer_t'
 
 local uv = {}
 
-uv.loop = libuv.uv_default_loop()
+uv.timer = require 'uv.timer'
+uv.fs = require 'uv.fs'
+uv.http = require 'uv.http'
 
 function uv.run(callback)
-  return uv.loop:run(callback)
-end
-
-function uv.timer()
-  return uv.loop:timer()
+  uv.timer.set(0, callback)
+  return libuv.uv_default_loop():run()
 end
 
 return uv

@@ -1,21 +1,27 @@
-local uv = require 'uv'
 local join = require 'uv/join'
+local uv_timer_t = require 'uv/uv_timer_t'
 
 local timer = {}
 
 function timer.set(timeout, callback)
   join(coroutine.create(function()
-    uv.timer():sleep(timeout)
+    local timer = uv_timer_t()
+    timer:sleep(timeout)
+    timer:free()
     callback()
   end))
 end
 
 function timer.every(timeout, callback)
-  uv.timer():every(timeout, callback)
+  local timer = uv_timer_t()
+  timer:every(timeout, callback)
+  timer:free()
 end
 
 function timer.sleep(timeout)
-  uv.timer():sleep(timeout)
+  local timer = uv_timer_t()
+  timer:sleep(timeout)
+  timer:free()
 end
 
 return timer

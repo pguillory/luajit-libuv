@@ -2,7 +2,6 @@ local class = require 'uv/class'
 local ffi = require 'ffi'
 local libuv = require 'uv/libuv'
 local libuv2 = require 'uv/libuv2'
-local uv = require 'uv'
 local uv_fs_t = require 'uv/uv_fs_t'
 local uv_buf_t = require 'uv/uv_buf_t'
 
