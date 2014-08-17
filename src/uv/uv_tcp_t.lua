@@ -61,8 +61,9 @@ function uv_tcp_t:write(content)
   local req = ffi.new('uv_write_t')
   local buf = uv_buf_t(content, #content)
   self.loop:assert(libuv2.uv2_tcp_write(req, self, buf, 1, async.uv_write_cb))
-  self.loop:assert(async.yield(req))
+  local status = async.yield(req)
   buf:free()
+  return 0 == status
 end
 
 function uv_tcp_t:listen(on_connect)
