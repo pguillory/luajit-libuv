@@ -3,6 +3,7 @@ local ffi = require 'ffi'
 local ctype = require 'uv/ctype'
 local join = require 'uv/join'
 local libuv = require 'uv/libuv'
+local errno = require 'uv/errno'
 
 --------------------------------------------------------------------------------
 -- uv_loop_t
@@ -12,7 +13,7 @@ local uv_loop_t = ctype('uv_loop_t')
 
 function uv_loop_t:assert(r)
   if tonumber(r) < 0 then
-    error(ffi.string(libuv.uv_err_name(r)) .. ': ' .. ffi.string(libuv.uv_strerror(r)), 2)
+    error(errno[r], 2)
   end
   return tonumber(r)
 end
