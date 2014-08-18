@@ -45,15 +45,15 @@ int uv2_fs_open(uv_loop_t* loop, uv_fs_t* req, const char* path, int flags, int 
   if (flags & 0x0000) flags2 += O_RDONLY;
   if (flags & 0x0001) flags2 += O_WRONLY;
   if (flags & 0x0002) flags2 += O_RDWR;
-  if (flags & 0x0004) flags2 += O_NONBLOCK;
+  //if (flags & 0x0004) flags2 += O_NONBLOCK;
   if (flags & 0x0008) flags2 += O_APPEND;
-  if (flags & 0x0010) flags2 += O_SHLOCK;
-  if (flags & 0x0020) flags2 += O_EXLOCK;
-  if (flags & 0x0040) flags2 += O_ASYNC;
-  if (flags & 0x0100) flags2 += O_NOFOLLOW;
+  //if (flags & 0x0010) flags2 += O_SHLOCK;
+  //if (flags & 0x0020) flags2 += O_EXLOCK;
+  //if (flags & 0x0040) flags2 += O_ASYNC;
+  //if (flags & 0x0100) flags2 += O_NOFOLLOW;
   if (flags & 0x0200) flags2 += O_CREAT;
   if (flags & 0x0400) flags2 += O_TRUNC;
-  if (flags & 0x0800) flags2 += O_EXCL;
+  //if (flags & 0x0800) flags2 += O_EXCL;
 
   return uv_fs_open(loop, req, path, flags2, mode, cb);
 }
