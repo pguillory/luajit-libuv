@@ -36,13 +36,60 @@ uv.run(function()
   http.listen('127.0.0.1', 80, function(request)
     return 200, {}, 'Hello world!'
   end)
+end)
+```
 
-  local file = fs.open('README.md')
-  repeat
-    local chunk = file:read()
-    io.write(chunk)
-  until chunk == ''
-  file:close()
+API Reference
+-------------
+
+**uv.run(callback)**
+
+Your entire application should be wrapped in a `uv.run` call. The callback function gets called with the event loop running. It returns when the last I/O request is finished.
+
+```lua
+uv.run(function()
+  // program goes here
+end)
+```
+
+**timer.set(timeout, callback)**
+
+Schedule a function to be called once in the future. Returns immediately.
+
+```lua
+uv.run(function()
+  timer.set(5000, function()
+    print('Ding!')
+  end)
+  print('Waiting 5 seconds...')
+end)
+print('The timer dinged.')
+```
+
+**timer.every(timeout, callback)**
+
+Schedule a function to be called every `timeout` milliseconds. Returns immediately.
+
+```lua
+uv.run(function()
+  timer.set(5000, function(t)
+    print('Tick...')
+    if we_are_done then
+      t:stop()
+    end
+  end)
+end)
+```
+
+**timer.sleep(timeout, callback)**
+
+Yield the current coroutine for `timeout` milliseconds.
+
+```lua
+uv.run(function()
+  print('Going to sleep...')
+  timer.sleep(5000)
+  print('Woke up')
 end)
 ```
 
