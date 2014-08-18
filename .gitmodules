@@ -4,3 +4,7 @@
 [submodule "http-parser"]
 	path = deps/http-parser
 	url = https://github.com/joyent/http-parser.git
+[submodule "deps/luajit"]
+	path = deps/luajit
+	url = https://github.com/LuaDist/luajit.git
+	ignore = dirty

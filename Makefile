@@ -1,4 +1,4 @@
-LUA = luajit
+LUA = deps/luajit/luajit
 LUA_DIR=/usr/local
 LUA_LIBDIR=$(LUA_DIR)/lib/lua/5.1
 LUA_SHAREDIR=$(LUA_DIR)/share/lua/5.1
@@ -21,9 +21,11 @@ all: $(FILES)
 # libuv
 ################################################################################
 
-deps/libuv/include/uv.h:
+deps/libuv:
 	git submodule init
-	git submodule update
+	git submodule update $@
+
+deps/libuv/include/uv.h: deps/libuv
 
 deps/libuv/configure: deps/libuv/include/uv.h
 	cd deps/libuv && sh autogen.sh
@@ -56,11 +58,13 @@ src/uv/lib/libuv2.min.h: src/uv/libuv2.h
 # http-parser
 ################################################################################
 
-deps/http-parser/http_parser.h:
+deps/http-parser:
 	git submodule init
-	git submodule update
+	git submodule update $@
 
-deps/http-parser/libhttp_parser.so.2.3:
+deps/http-parser/http_parser.h: deps/http-parser
+
+deps/http-parser/libhttp_parser.so.2.3: deps/http-parser
 	cd deps/http-parser && make library
 
 src/uv/lib/libhttp_parser.$(EXT): deps/http-parser/libhttp_parser.so.2.3
@@ -68,6 +72,20 @@ src/uv/lib/libhttp_parser.$(EXT): deps/http-parser/libhttp_parser.so.2.3
 
 src/uv/lib/libhttp_parser.min.h: deps/http-parser/http_parser.h
 	gcc -E $+ | grep -v '^ *#' > $@
+
+################################################################################
+# luajit
+################################################################################
+
+deps/luajit:
+	git submodule init
+	git submodule update $@
+
+deps/luajit/CMakeFiles: deps/luajit
+	cd deps/luajit && cmake .
+
+deps/luajit/luajit: deps/luajit/CMakeFiles
+	cd deps/luajit && make
 
 ################################################################################
 # etc...
@@ -80,7 +98,7 @@ clean:
 	rm -rf deps/* src/uv/lib/*
 
 test: run-tests
-run-tests:
+run-tests: $(LUA)
 	@LUA_PATH="src/?.lua;;" ${LUA} test/uv_test.lua
 	@LUA_PATH="src/?.lua;;" ${LUA} test/fs_test.lua
 	@LUA_PATH="src/?.lua;;" ${LUA} test/http_test.lua
