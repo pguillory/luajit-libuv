@@ -3,12 +3,16 @@ LUA_DIR=/usr/local
 LUA_LIBDIR=$(LUA_DIR)/lib/lua/5.1
 LUA_SHAREDIR=$(LUA_DIR)/share/lua/5.1
 
-FILES=src/uv/lib/libuv.dylib \
+EXT ?= so
+ifeq ($(shell uname -s), Darwin)
+	EXT = dylib
+endif
+
+FILES=src/uv/lib/libuv.$(EXT) \
 	  src/uv/lib/libuv.min.h \
-	  src/uv/lib/libuv2.dylib \
+	  src/uv/lib/libuv2.$(EXT) \
 	  src/uv/lib/libuv2.min.h \
-	  src/uv/lib/libhttp_parser.dylib \
-	  src/uv/lib/libhttp_parser.so \
+	  src/uv/lib/libhttp_parser.$(EXT) \
 	  src/uv/lib/libhttp_parser.min.h
 
 all: $(FILES)
@@ -30,15 +34,15 @@ libuv/Makefile: libuv/configure
 libuv/.libs/libuv.a: libuv/Makefile
 	cd libuv && make
 
-libuv/.libs/libuv.dylib: libuv/.libs/libuv.a
+libuv/.libs/libuv.$(EXT): libuv/.libs/libuv.a
 
-src/uv/lib/libuv.dylib: libuv/.libs/libuv.dylib
-	cp libuv/.libs/libuv.dylib $@
+src/uv/lib/libuv.$(EXT): libuv/.libs/libuv.$(EXT)
+	cp libuv/.libs/libuv.$(EXT) $@
 
 src/uv/lib/libuv.min.h: libuv/include/uv.h
 	gcc -E libuv/include/uv.h | grep -v '^ *#' > $@
 
-src/uv/lib/libuv2.dylib: libuv/.libs/libuv.a src/uv/libuv2.c
+src/uv/lib/libuv2.$(EXT): libuv/.libs/libuv.a src/uv/libuv2.c
 	gcc -dynamiclib libuv/.libs/libuv.a src/uv/libuv2.c -o $@
 
 src/uv/lib/libuv2.min.h: src/uv/libuv2.h
@@ -56,13 +60,10 @@ http-parser/http_parser.h:
 http-parser/libhttp_parser.so.2.3:
 	cd http-parser && make library
 
-src/uv/lib/libhttp_parser.dylib: http-parser/libhttp_parser.so.2.3
+src/uv/lib/libhttp_parser.$(EXT): http-parser/libhttp_parser.so.2.3
 	cp http-parser/libhttp_parser.so.2.3 $@
 
-src/uv/lib/libhttp_parser.so: http-parser/libhttp_parser.so.2.3
-	cp http-parser/libhttp_parser.so.2.3 $@
-
-src/uv/lib/libhttp_parser.min.h: src/uv/lib/libhttp_parser.dylib
+src/uv/lib/libhttp_parser.min.h: src/uv/lib/libhttp_parser.$(EXT)
 	gcc -E http-parser/http_parser.h | grep -v '^ *#' > $@
 
 ################################################################################
