@@ -22,12 +22,12 @@ all: $(FILES)
 ################################################################################
 
 deps/libuv:
-	git submodule init $@
-	git submodule update $@
+	git clone --depth 1 https://github.com/joyent/libuv.git --branch v0.11.28 $@
 
 deps/libuv/include/uv.h: deps/libuv
+deps/libuv/autogen.sh: deps/libuv
 
-deps/libuv/configure: deps/libuv/include/uv.h
+deps/libuv/configure: deps/libuv/autogen.sh
 	cd deps/libuv && sh autogen.sh
 
 deps/libuv/Makefile: deps/libuv/configure
@@ -59,8 +59,7 @@ src/uv/lib/libuv2.min.h: src/uv/libuv2.h
 ################################################################################
 
 deps/http-parser:
-	git submodule init $@
-	git submodule update $@
+	git clone --depth 1 https://github.com/joyent/http-parser.git --branch v2.3 $@
 
 deps/http-parser/http_parser.h: deps/http-parser
 
@@ -78,8 +77,7 @@ src/uv/lib/libhttp_parser.min.h: deps/http-parser/http_parser.h
 ################################################################################
 
 deps/luajit:
-	git submodule init $@
-	git submodule update $@
+	git clone --depth 1 https://github.com/LuaDist/luajit.git --branch 2.0.3 $@
 
 deps/luajit/CMakeFiles: deps/luajit
 	cd deps/luajit && cmake .
