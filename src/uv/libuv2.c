@@ -1,5 +1,5 @@
 #include <stdlib.h>
-#include "../../libuv/include/uv.h"
+#include "../../deps/libuv/include/uv.h"
 #include "libuv2.h"
 
 void uv2_alloc_cb(uv_handle_t* handle, size_t suggested_size, uv_buf_t* buf) {
