@@ -47,7 +47,7 @@ src/uv/lib/libuv.min.h: deps/libuv/include/uv.h
 src/uv/lib/libuv2.dylib: deps/libuv/.libs/libuv.a src/uv/libuv2.c
 	gcc -dynamiclib $+ -o $@
 
-src/uv/lib/libuv2.so: deps/libuv/.libs/libuv.a src/uv/libuv2.c
+src/uv/lib/libuv2.so: src/uv/libuv2.c deps/libuv/.libs/libuv.so
 	gcc -g -fPIC -shared $+ -o $@
 
 src/uv/lib/libuv2.min.h: src/uv/libuv2.h
