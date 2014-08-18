@@ -8,6 +8,22 @@ powers the async I/O behind [Node.js] and others. In contrast to [luv], it
 uses Lua coroutines to enable asynchronous I/O behavior with synchronous
 syntax.
 
+Requirements
+------------
+
+Just standard C build tools. [libuv] and [http-parser] are bundled. A bundled
+version of [luajit] is used to run the tests.
+
+Installation
+------------
+
+```bash
+git clone https://github.com/pguillory/luajit-libuv.git
+cd luajit-libuv
+make
+make install
+```
+
 Usage
 -----
 
@@ -30,17 +46,9 @@ uv.run(function()
 end)
 ```
 
-Installation
-------------
-
-```bash
-git clone git@github.com:pguillory/luajit-libuv.git
-cd luajit-libuv
-make
-make test
-```
-
 [Luajit FFI]: http://luajit.org/ext_ffi.html
 [libuv]: https://github.com/joyent/libuv
 [Node.js]: http://nodejs.org/
 [luv]: https://github.com/creationix/luv
+[http-parser]: https://github.com/joyent/http-parser
+[luajit]: http://luajit.org/
