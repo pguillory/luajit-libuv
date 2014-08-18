@@ -27,13 +27,16 @@ make install
 Usage
 -----
 
+A simple web server.
+
 ```lua
 local uv = require 'uv'
-local fs = require 'uv.fs'
+local timer = require 'uv.timer'
 local http = require 'uv.http'
 
 uv.run(function()
   http.listen('127.0.0.1', 80, function(request)
+    timer.sleep(5000)
     return 200, {}, 'Hello world!'
   end)
 end)
