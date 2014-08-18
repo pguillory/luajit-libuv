@@ -79,7 +79,9 @@ src/uv/lib/libhttp_parser.min.h: deps/http-parser/http_parser.h
 deps/luajit:
 	git clone --depth 1 https://github.com/LuaDist/luajit.git --branch 2.0.3 $@
 
-deps/luajit/luajit: deps/luajit
+deps/luajit/CMakeLists.txt: deps/luajit
+
+deps/luajit/luajit: deps/luajit/CMakeLists.txt
 	cd deps/luajit && cmake . && make && rm -rf Makefile CMakeFiles
 
 ################################################################################
