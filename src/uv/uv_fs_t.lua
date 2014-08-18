@@ -4,6 +4,7 @@ local async = require 'uv/async'
 local async = require 'uv/async'
 local ctype = require 'uv/ctype'
 local libuv = require 'uv/libuv'
+local libuv2 = require 'uv/libuv2'
 local uv_buf_t = require 'uv/uv_buf_t'
 
 --------------------------------------------------------------------------------
@@ -17,7 +18,7 @@ local uv_fs_t = ctype('uv_fs_t', function(loop)
 end)
 
 function uv_fs_t:open(path, flags, mode)
-  self.loop:assert(libuv.uv_fs_open(self.loop, self, path, flags, mode, async.uv_fs_cb))
+  self.loop:assert(libuv2.uv2_fs_open(self.loop, self, path, flags, mode, async.uv_fs_cb))
   async.yield(self)
   local descriptor = tonumber(self.result)
   if descriptor < 0 then
