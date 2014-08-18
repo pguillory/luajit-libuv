@@ -22,7 +22,7 @@ all: $(FILES)
 ################################################################################
 
 deps/libuv:
-	git submodule init
+	git submodule init $@
 	git submodule update $@
 
 deps/libuv/include/uv.h: deps/libuv
@@ -59,7 +59,7 @@ src/uv/lib/libuv2.min.h: src/uv/libuv2.h
 ################################################################################
 
 deps/http-parser:
-	git submodule init
+	git submodule init $@
 	git submodule update $@
 
 deps/http-parser/http_parser.h: deps/http-parser
@@ -78,7 +78,7 @@ src/uv/lib/libhttp_parser.min.h: deps/http-parser/http_parser.h
 ################################################################################
 
 deps/luajit:
-	git submodule init
+	git submodule init $@
 	git submodule update $@
 
 deps/luajit/CMakeFiles: deps/luajit
