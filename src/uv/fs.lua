@@ -289,4 +289,51 @@ function fs.chdir(dir)
   assert(0 == libuv.uv_chdir(dir))
 end
 
+function fs.readdir(path)
+  local filenames = uv_fs_t():readdir(path, 0)
+  table.sort(filenames)
+  return filenames
+end
+
+function fs.readdir_r(path)
+  local filenames = {}
+  local function scan(prefix)
+    if fs.stat(path .. '/' .. prefix).is_dir then
+      for _, f in ipairs(fs.readdir(path .. '/' .. prefix)) do
+        scan(prefix .. '/' .. f)
+      end
+    else
+      table.insert(filenames, prefix)
+    end
+  end
+  for _, prefix in ipairs(fs.readdir(path)) do
+    scan(prefix)
+  end
+  table.sort(filenames)
+  return filenames
+end
+
+function fs.rm_rf(path)
+  if fs.stat(path).is_dir then
+    for _, filename in ipairs(fs.readdir(path)) do
+      fs.rm_rf(path .. '/' .. filename)
+    end
+    fs.rmdir(path)
+  else
+    fs.unlink(path)
+  end
+end
+
+function fs.extname(filename)
+  return filename:match('%.[^./]+$') or ''
+end
+
+function fs.basename(filename)
+  return filename:match('[^/]+$'):sub(1, -#fs.extname(filename) - 1)
+end
+
+function fs.dirname(filename)
+  return filename:sub(1, -#filename:match('[^/]+$') - 1)
+end
+
 return fs

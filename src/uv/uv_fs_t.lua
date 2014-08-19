@@ -223,4 +223,27 @@ function uv_fs_t:fsync(file)
   libuv.uv_fs_req_cleanup(self)
 end
 
+local function cstrings(cstrings, count)
+  cstrings = ffi.cast('char*', cstrings)
+  local t = {}
+  for i = 1, count do
+    local s = ffi.string(cstrings)
+    cstrings = cstrings + #s + 1
+    t[i] = s
+  end
+  return t
+end
+
+function uv_fs_t:readdir(path, flags)
+  self.loop:assert(libuv.uv_fs_readdir(self.loop, self, path, flags, async.uv_fs_cb))
+  async.yield(self)
+  local status = tonumber(self.result)
+  if status < 0 then
+    error(ffi.string(libuv.uv_strerror(self.result)))
+  end
+  local filenames = cstrings(self.ptr, status)
+  libuv.uv_fs_req_cleanup(self)
+  return filenames
+end
+
 return uv_fs_t
