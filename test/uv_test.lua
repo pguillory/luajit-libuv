@@ -29,7 +29,7 @@ uv.run(function()
   local getaddrinfo = uv_getaddrinfo_t()
 
   local addrs = getaddrinfo:getaddrinfo('123.123.123.123', 'https')
-  assert(#addrs == 2) -- why?
+  assert(#addrs > 0)
   for _, addr in ipairs(addrs) do
     assert(addr:ip() == '123.123.123.123')
     assert(addr:port() == 443)
