@@ -273,6 +273,12 @@ function fs.readfile(path)
   return table.concat(buffer)
 end
 
+function fs.writefile(path, body)
+  local file = fs.open(path, 'w')
+  file:write(body)
+  file:close()
+end
+
 function fs.tmpname()
   return os.tmpname()
 end
@@ -334,6 +340,27 @@ end
 
 function fs.dirname(filename)
   return filename:sub(1, -#filename:match('[^/]+$') - 1)
+end
+
+local function finally(try, always)
+  local ok, err = xpcall(try, function(err)
+    return debug.traceback(err, 2)
+  end)
+  always()
+  if not ok then
+    error(err, 0)
+  end
+end
+
+function fs.with_tempdir(callback)
+  local name = fs.tmpname()
+  fs.unlink(name)
+  fs.mkdir(name)
+  finally(function()
+    callback(name)
+  end, function()
+    fs.rm_rf(name)
+  end)
 end
 
 return fs
