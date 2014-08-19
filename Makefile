@@ -1,4 +1,4 @@
-LUA = deps/luajit/luajit
+LUA = ./luajit
 LUA_DIR=/usr/local
 LUA_LIBDIR=$(LUA_DIR)/lib/lua/5.1
 LUA_SHAREDIR=$(LUA_DIR)/share/lua/5.1
@@ -92,21 +92,21 @@ src/uv/lib/libhttp_parser.min.h: deps/http-parser/http_parser.h
 # luajit
 ################################################################################
 
-deps/luajit-2.0.3.zip:
-	wget https://github.com/LuaDist/luajit/archive/2.0.3.zip -O $@
+deps/LuaJIT-2.0.3.tar.gz:
+	cd deps && wget http://luajit.org/download/LuaJIT-2.0.3.tar.gz
 
-deps/luajit-2.0.3: deps/luajit-2.0.3.zip
+deps/LuaJIT-2.0.3: deps/LuaJIT-2.0.3.tar.gz
 	rm -rf $@
-	unzip $< -d deps
+	cd deps && tar zxf LuaJIT-2.0.3.tar.gz
 	touch $@
 
-deps/luajit: deps/luajit-2.0.3
-	cd deps && ln -fs luajit-2.0.3 luajit
+deps/LuaJIT-2.0.3/Makefile: deps/LuaJIT-2.0.3
 
-deps/luajit/CMakeLists.txt: deps/luajit
+deps/LuaJIT-2.0.3/src/luajit: deps/LuaJIT-2.0.3/Makefile
+	cd deps/LuaJIT-2.0.3 && make
 
-deps/luajit/luajit: deps/luajit/CMakeLists.txt
-	cd deps/luajit && cmake . && make && rm -rf Makefile CMakeFiles
+luajit: deps/LuaJIT-2.0.3/src/luajit
+	cp $+ $@
 
 ################################################################################
 # etc...
