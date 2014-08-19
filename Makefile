@@ -21,8 +21,16 @@ all: $(FILES)
 # libuv
 ################################################################################
 
-deps/libuv:
-	git clone --depth 1 https://github.com/joyent/libuv.git --branch v0.11.28 $@
+deps/libuv-v0.11.28.zip:
+	wget https://github.com/joyent/libuv/archive/v0.11.28.zip -O $@
+
+deps/libuv-0.11.28: deps/libuv-v0.11.28.zip
+	rm -rf $@
+	unzip $< -d deps
+	touch $@
+
+deps/libuv: deps/libuv-0.11.28
+	cd deps && ln -fs libuv-0.11.28 libuv
 
 deps/libuv/include/uv.h: deps/libuv
 deps/libuv/autogen.sh: deps/libuv
@@ -58,8 +66,16 @@ src/uv/lib/libuv2.min.h: src/uv/libuv2.h
 # http-parser
 ################################################################################
 
-deps/http-parser:
-	git clone --depth 1 https://github.com/joyent/http-parser.git --branch v2.3 $@
+deps/http-parser-v2.3.zip:
+	wget https://github.com/joyent/http-parser/archive/v2.3.zip -O $@
+
+deps/http-parser-2.3: deps/http-parser-v2.3.zip
+	rm -rf $@
+	unzip $< -d deps
+	touch $@
+
+deps/http-parser: deps/http-parser-2.3
+	cd deps && ln -fs http-parser-2.3 http-parser
 
 deps/http-parser/http_parser.h: deps/http-parser
 
@@ -76,8 +92,16 @@ src/uv/lib/libhttp_parser.min.h: deps/http-parser/http_parser.h
 # luajit
 ################################################################################
 
-deps/luajit:
-	git clone --depth 1 https://github.com/LuaDist/luajit.git --branch 2.0.3 $@
+deps/luajit-2.0.3.zip:
+	wget https://github.com/LuaDist/luajit/archive/2.0.3.zip -O $@
+
+deps/luajit-2.0.3: deps/luajit-2.0.3.zip
+	rm -rf $@
+	unzip $< -d deps
+	touch $@
+
+deps/luajit: deps/luajit-2.0.3
+	cd deps && ln -fs luajit-2.0.3 luajit
 
 deps/luajit/CMakeLists.txt: deps/luajit
 
