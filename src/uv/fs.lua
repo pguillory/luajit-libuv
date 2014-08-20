@@ -4,6 +4,7 @@ local libuv = require 'uv/libuv'
 local libuv2 = require 'uv/libuv2'
 local uv_fs_t = require 'uv/uv_fs_t'
 local uv_buf_t = require 'uv/uv_buf_t'
+local errno = require 'uv/errno'
 
 ffi.cdef [[
   mode_t umask(mode_t mask);
@@ -285,14 +286,21 @@ end
 
 function fs.cwd()
   local buf = uv_buf_t()
-  assert(0 == libuv2.uv2_cwd(buf))
+  local status = libuv2.uv2_cwd(buf)
+  if status ~= 0 then
+    buf:free()
+    error(errno(status))
+  end
   local cwd = ffi.string(buf.base, buf.len)
   buf:free()
   return cwd
 end
 
 function fs.chdir(dir)
-  assert(0 == libuv.uv_chdir(dir))
+  local status = libuv.uv_chdir(dir)
+  if 0 ~= status then
+    error(errno(status))
+  end
 end
 
 function fs.readdir(path)
