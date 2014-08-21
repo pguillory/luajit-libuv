@@ -347,7 +347,17 @@ function fs.basename(filename)
 end
 
 function fs.dirname(filename)
-  return filename:sub(1, -#filename:match('[^/]+$') - 1)
+  return filename:match('.*/') or ''
+end
+
+do
+  assert(fs.dirname('/a/b') == '/a/')
+  assert(fs.dirname('/a/') == '/a/')
+  assert(fs.dirname('/a') == '/')
+  assert(fs.dirname('/') == '/')
+  assert(fs.dirname('a') == '')
+  assert(fs.dirname('a/') == 'a/')
+  assert(fs.dirname('a/b') == 'a/')
 end
 
 local function finally(try, always)
