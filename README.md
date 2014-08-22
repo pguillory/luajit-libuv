@@ -47,28 +47,27 @@ API Reference
 Schedule a function to be called once in the future. Returns immediately.
 
 ```lua
-uv.run(function()
-  timer.set(5000, function()
-    print('Ding!')
-  end)
-  print('Waiting 5 seconds...')
+timer.set(5000, function()
+  print('Ding!')
 end)
+print('Waiting 5 seconds...')
+uv.run()
 print('The timer dinged.')
 ```
 
 **timer.every(timeout, callback)**
 
-Schedule a function to be called every `timeout` milliseconds. Returns immediately.
+Schedule a function to be called every `timeout` milliseconds. Returns
+immediately.
 
 ```lua
-uv.run(function()
-  timer.set(5000, function(t)
-    print('Tick...')
-    if we_are_done then
-      t:stop()
-    end
-  end)
+timer.every(1000, function(t)
+  print('Tick...')
+  if we_are_done then
+    t:stop()
+  end
 end)
+uv.run()
 ```
 
 **timer.sleep(timeout, callback)**
@@ -76,11 +75,9 @@ end)
 Yield the current coroutine for `timeout` milliseconds.
 
 ```lua
-uv.run(function()
-  print('Going to sleep...')
-  timer.sleep(5000)
-  print('Woke up')
-end)
+print('Going to sleep...')
+timer.sleep(5000)
+print('Woke up')
 ```
 
 **fs.open(path, flags, mode)**
@@ -101,11 +98,9 @@ means it is accessible by anyone.
 Returns a file object.
 
 ```lua
-uv.run(function()
-  local file = fs.open('/path/to/file.txt', 'w', '755')
-  file:write('hello world')
-  file:close()
-end)
+local file = fs.open('/path/to/file.txt', 'w', '755')
+file:write('hello world')
+file:close()
 ```
 
 **fs.unlink(path)**
@@ -198,16 +193,14 @@ Get a list of all files under a directory and its descendent subdirectories.
 Returns a flat list of filenames.
 
 ```lua
-uv.run(function()
-  fs.with_tempdir(function(dir)
-    fs.chdir(dir)
-    fs.writefile('a', '')
-    fs.writefile('b', '')
-    fs.mkdir('c')
-    fs.writefile('c/d', '')
-    local filenames = fs.readdir_r('.')
-    # filenames == { 'a', 'b', 'c/d' }
-  end)
+fs.with_tempdir(function(dir)
+  fs.chdir(dir)
+  fs.writefile('a', '')
+  fs.writefile('b', '')
+  fs.mkdir('c')
+  fs.writefile('c/d', '')
+  local filenames = fs.readdir_r('.')
+  # filenames == { 'a', 'b', 'c/d' }
 end)
 ```
 
@@ -235,10 +228,8 @@ Create a directory, pass it to a callback, and delete the directory when the
 callback returns.
 
 ```lua
-uv.run(function()
-  fs.with_tempdir(function(dir)
-    # dir will be something like '/tmp/lua_bVjBeR'
-  end)
+fs.with_tempdir(function(dir)
+  # dir will be something like '/tmp/lua_bVjBeR'
 end)
 ```
 
