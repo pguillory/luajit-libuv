@@ -1,6 +1,7 @@
 require 'strict'
 local uv = require 'uv'
 local http = require 'uv.http'
+local join = require 'uv/join'
 
 --------------------------------------------------------------------------------
 -- basic server
@@ -98,3 +99,26 @@ uv.run(function()
 
   server:close()
 end)
+
+--------------------------------------------------------------------------------
+-- manually invoked event loop
+--------------------------------------------------------------------------------
+
+do
+  local server, response
+
+  join(coroutine.create(function()
+    server = http.listen('127.0.0.1', 7000, function(request)
+      return 200, {}, 'ok'
+    end)
+  end))
+
+  join(coroutine.create(function()
+    response = http.request { url = 'http://127.0.0.1:7000/' }
+    server:close()
+  end))
+  
+  uv.run()
+
+  assert(response.body == 'ok')
+end

@@ -20,7 +20,9 @@ uv.fs = require 'uv.fs'
 uv.http = require 'uv.http'
 
 function uv.run(callback)
-  uv.timer.set(0, callback)
+  if callback then
+    uv.timer.set(0, callback)
+  end
   return libuv.uv_default_loop():run()
 end
 

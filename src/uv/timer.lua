@@ -13,9 +13,11 @@ function timer.set(timeout, callback)
 end
 
 function timer.every(timeout, callback)
-  local timer = uv_timer_t()
-  timer:every(timeout, callback)
-  timer:free()
+  join(coroutine.create(function()
+    local timer = uv_timer_t()
+    timer:every(timeout, callback)
+    timer:free()
+  end))
 end
 
 function timer.sleep(timeout)

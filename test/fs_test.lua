@@ -10,7 +10,7 @@ ffi.cdef [[
 local uid = ffi.C.getuid()
 local gid = ffi.C.getgid()
 
-uv.run(function()
+do
   fs.with_tempdir(function(dir)
     assert(fs.cwd():find(dir, 1, true) == nil)
     fs.chdir(dir)
@@ -102,4 +102,4 @@ uv.run(function()
     end)
     assert(not ok and err:find('ENOENT: no such file or directory'))
   end)
-end)
+end

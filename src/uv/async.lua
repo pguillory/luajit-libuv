@@ -1,5 +1,6 @@
 local ffi = require 'ffi'
 local join = require 'uv/join'
+local libuv = require 'uv/libuv'
 
 local async, threads, id = {}, {}, 0
 setmetatable(async, async)
@@ -15,12 +16,24 @@ local function log(color, method, id, req, info)
 end
 
 function async.yield(req)
+  local thread = coroutine.running()
+
+  if not thread then
+    local retval
+    local thread = coroutine.create(function()
+      retval = { async.yield(req) }
+    end)
+    local ok = coroutine.resume(thread)
+    libuv.uv_default_loop():run()
+    return unpack(retval)
+  end
+
   while threads[id] do
     id = bit.band(id + 1, 0xFFFFFFFFFFFF) -- lower 48 bits
   end
   -- log(yellow_on_black, 'yield', id, req, debug.getinfo(2))
   req.data = ffi.cast('void*', id)
-  threads[id] = coroutine.running()
+  threads[id] = thread
   return coroutine.yield()
 end
 

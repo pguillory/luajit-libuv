@@ -30,30 +30,17 @@ Usage
 A simple web server.
 
 ```lua
-local uv = require 'uv'
 local timer = require 'uv.timer'
 local http = require 'uv.http'
 
-uv.run(function()
-  http.listen('127.0.0.1', 80, function(request)
-    timer.sleep(5000)
-    return 200, {}, 'Hello world!'
-  end)
+http.listen('127.0.0.1', 80, function(request)
+  timer.sleep(5000)
+  return 200, {}, 'Hello world!'
 end)
 ```
 
 API Reference
 -------------
-
-**uv.run(callback)**
-
-Your entire application should be wrapped in a `uv.run` call. The callback function gets called with the event loop running. It returns when the last I/O request is finished.
-
-```lua
-uv.run(function()
-  // program goes here
-end)
-```
 
 **timer.set(timeout, callback)**
 
@@ -254,6 +241,32 @@ uv.run(function()
   end)
 end)
 ```
+
+**uv.run()**
+
+Run the libuv event loop. This is only necessary if an I/O request was created
+in a coroutine without the event loop already running. Requests made outside a
+coroutine are performed synchronously. It returns when the last I/O request is
+finished.
+
+```lua
+print(uv.fs.readfile('README.md'))
+```
+
+In this example, we're not in a coroutine, so `fs.readfile` ran the event loop
+implicitly. There is no need to call `uv.run()`.
+
+```lua
+coroutine.resume(coroutine.create(function()
+  print(uv.fs.readfile('README.md'))
+end))
+uv.run()
+```
+
+Here, we manually created a coroutine that called `fs.readfile`, which yielded
+while awaiting the result. The event loop is not running, so unless we called
+`uv.run()`, the program would exit without performing the I/O request and the
+coroutine would never resume.
 
 [Luajit FFI]: http://luajit.org/ext_ffi.html
 [libuv]: https://github.com/joyent/libuv
