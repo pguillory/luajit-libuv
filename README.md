@@ -247,6 +247,11 @@ local requests = {
 local responses = parallel.map(requests, http.request)
 ```
 
+**parallel.range(n, callback)**
+
+Call `callback` `n` times, each in its own coroutine. Like a parallel version
+of the `for` loop.
+
 **uv.run()**
 
 Run the libuv event loop. This is only necessary if an I/O request was created

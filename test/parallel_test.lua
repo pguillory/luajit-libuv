@@ -3,6 +3,28 @@ local parallel = require 'uv.parallel'
 local timer = require 'uv.timer'
 
 do
+  local log = {}
+  uv.run(function()
+    parallel.range(3, function(i)
+      table.insert(log, i)
+      timer.sleep(1)
+      table.insert(log, i)
+    end)
+  end)
+  assert(table.concat(log) == '123123')
+end
+
+do
+  local log = {}
+  parallel.range(3, function(i)
+    table.insert(log, i)
+    timer.sleep(1)
+    table.insert(log, i)
+  end)
+  assert(table.concat(log) == '123123')
+end
+
+do
   local inputs = { 'a', 'b', 'c' }
   local log = {}
   local outputs = {}

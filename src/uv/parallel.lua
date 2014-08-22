@@ -5,13 +5,22 @@ local libuv = require 'uv/libuv'
 local parallel = {}
 
 function parallel.map(inputs, callback)
-  local thread = coroutine.running()
-  local busy = #inputs
   local outputs = {}
 
-  for i, input in ipairs(inputs) do
+  parallel.range(#inputs, function(i)
+    outputs[i] = callback(inputs[i])
+  end)
+
+  return outputs
+end
+
+function parallel.range(n, callback)
+  local thread = coroutine.running()
+  local busy = n
+
+  for i = 1, n do
     timer.set(0, function()
-      outputs[i] = callback(input)
+      callback(i)
       busy = busy - 1
       if busy == 0 then
         join(thread)
@@ -25,8 +34,6 @@ function parallel.map(inputs, callback)
     busy = 0
     libuv.uv_default_loop():run()
   end
-
-  return outputs
 end
 
 return parallel
