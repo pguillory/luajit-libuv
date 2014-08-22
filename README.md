@@ -233,6 +233,20 @@ fs.with_tempdir(function(dir)
 end)
 ```
 
+**parallel.map(inputs, callback)**
+
+Map an array of inputs to an array of outputs. Each input is passed to
+`callback` in its own coroutine, so that I/O operations are performed in
+parallel.
+
+```lua
+local requests = {
+  { url = 'http://example.com/page1' },
+  { url = 'http://example.com/page2' },
+}
+local responses = parallel.map(requests, http.request)
+```
+
 **uv.run()**
 
 Run the libuv event loop. This is only necessary if an I/O request was created
