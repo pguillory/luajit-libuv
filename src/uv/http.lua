@@ -285,4 +285,8 @@ function http.request(request)
   return response
 end
 
+function http.format_date(time)
+  return os.date("!%a, %d %b %Y %H:%M:%S GMT", tonumber(time))
+end
+
 return http
