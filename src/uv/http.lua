@@ -289,4 +289,67 @@ function http.format_date(time)
   return os.date("!%a, %d %b %Y %H:%M:%S GMT", tonumber(time))
 end
 
+local month_atoi = {
+  Jan = 1,
+  Feb = 2,
+  Mar = 3,
+  Apr = 4,
+  May = 5,
+  Jun = 6,
+  Jul = 7,
+  Aug = 8,
+  Sep = 9,
+  Oct = 10,
+  Nov = 11,
+  Dec = 12,
+}
+
+local function get_timezone_offset(ts)
+	local utcdate   = os.date("!*t", ts)
+	local localdate = os.date("*t", ts)
+	localdate.isdst = false -- this is the trick
+	return os.difftime(os.time(localdate), os.time(utcdate))
+end
+
+function http.parse_date(s)
+  local rfc1123 = '%w+, (%d+) (%w+) (%d+) (%d+):(%d+):(%d+) GMT' -- Sun, 06 Nov 1994 08:49:37 GMT
+  local rfc1036 = '%w+, (%d+)-(%w+)-(%d+) (%d+):(%d+):(%d+) GMT' -- Sunday, 06-Nov-94 08:49:37 GMT
+  local asctime = '%w+ (%w+) +(%d+) (%d+):(%d+):(%d+) (%d+)' -- Sun Nov  6 08:49:37 1994
+
+  local day, month, year, hour, min, sec
+
+  day, month, year, hour, min, sec = s:match(rfc1123)
+  if day then
+    -- print('RFC 1123: ' .. s)
+  else
+    day, month, year, hour, min, sec = s:match(rfc1036)
+    if day then
+      -- print('RFC 1036: ' .. s)
+      if tonumber(year) >= 0 then
+        year = '19' .. year
+      else
+        year = '20' .. year
+      end
+    else
+      month, day, hour, min, sec, year = s:match(asctime)
+      if day then
+        -- print('asctime: ' .. s)
+      else
+        return
+      end
+    end
+  end
+
+  local time = os.time {
+    year = tonumber(year),
+    month = assert(month_atoi[month], 'invalid month'),
+    day = tonumber(day),
+    hour = tonumber(hour),
+    min = tonumber(min),
+    sec = tonumber(sec),
+    isdst = false,
+  }
+  return time + get_timezone_offset(time)
+end
+
 return http

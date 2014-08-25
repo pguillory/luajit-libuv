@@ -124,10 +124,15 @@ do
 end
 
 --------------------------------------------------------------------------------
--- http.format_date()
+-- dates
 --------------------------------------------------------------------------------
 
 do
   local time = 1408986974LL
   assert(http.format_date(time) == 'Mon, 25 Aug 2014 17:16:14 GMT')
+
+  assert(http.parse_date('Sun, 06 Nov 1994 08:49:37 GMT') == 784111777)
+  assert(http.parse_date('Sunday, 06-Nov-94 08:49:37 GMT') == 784111777)
+  assert(http.parse_date('Sun Nov  6 08:49:37 1994') == 784111777)
+  assert(http.parse_date('asdf') == nil)
 end
