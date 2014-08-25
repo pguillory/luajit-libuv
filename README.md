@@ -39,6 +39,19 @@ http.listen('127.0.0.1', 80, function(request)
 end)
 ```
 
+See Also
+--------
+
+Lots of people have done this before.
+
+- [luvit](https://github.com/luvit/luvit)
+- [LuaNode](https://github.com/ignacio/LuaNode)
+- [lev](https://github.com/connectFree/lev)
+- [luv](https://github.com/luvit/luv)
+- [luauv](https://github.com/grrrwaaa/luauv)
+- [uv](https://github.com/steveyen/uv)
+- [lua-uv](https://github.com/bnoordhuis/lua-uv/)
+
 API Reference
 -------------
 
