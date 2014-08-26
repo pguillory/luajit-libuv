@@ -11,7 +11,8 @@ local yellow_on_black = '\27[33;40m'
 local white_on_black = '\27[37;40m'
 
 local function log(color, method, id, req, info)
-  print(string.format('%s%-8s %-5i %-42s %-10s %s%s', color, method, id, req, info.name, info.short_src .. ':' .. info.currentline, white_on_black))
+  local source = info.short_src .. ':' .. info.currentline
+  print(string.format('%s%-8s %-5i %-42s %-10s %s%s', color, method, id, req, info.name, source, white_on_black))
   io.flush()
 end
 

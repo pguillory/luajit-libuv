@@ -18,6 +18,7 @@ function uv_stream_t:read()
   libuv.uv_read_start(self, libuv2.uv2_alloc_cb, async.uv_read_cb)
   local nread, buf = async.yield(self)
   libuv.uv_read_stop(self)
+  self.loop:assert(nread)
   local chunk = (nread < 0) and '' or ffi.string(buf.base, nread)
   ffi.C.free(buf.base)
   return chunk, nread

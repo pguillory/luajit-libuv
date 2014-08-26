@@ -52,6 +52,7 @@ function uv_tcp_t:read()
   libuv2.uv2_tcp_read_start(self, libuv2.uv2_alloc_cb, async.uv_read_cb)
   local nread, buf = async.yield(self)
   libuv2.uv2_tcp_read_stop(self)
+  self.loop:assert(nread)
   local chunk = (nread < 0) and '' or ffi.string(buf.base, nread)
   ffi.C.free(buf.base)
   return chunk, nread
@@ -74,8 +75,14 @@ function uv_tcp_t:listen(on_connect)
       if tonumber(status) >= 0 then
         join(coroutine.create(function()
           local client = uv_tcp_t(self.loop)
-          if 0 == tonumber(libuv2.uv2_tcp_accept(self, client)) then
-            on_connect(client)
+          local ok, err = pcall(function()
+            if 0 == tonumber(libuv2.uv2_tcp_accept(self, client)) then
+              on_connect(client)
+            end
+          end)
+          if not ok then
+            io.stderr:write(err .. '\n')
+            io.flush()
           end
           client:close()
         end))
