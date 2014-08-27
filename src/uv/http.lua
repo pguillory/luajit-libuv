@@ -187,7 +187,7 @@ function Server:listen(callback)
   self.tcp:listen(function(stream)
     local request = parse_http(stream, libhttp_parser.HTTP_REQUEST)
 
-    url.parse(request.url, request)
+    url.split(request.url, request)
     request.socket = ffi.cast('uv_tcp_t*', stream)
 
     local status, headers, body = callback(request)
@@ -221,7 +221,7 @@ end
 
 function http.request(request)
   if request.url then
-    url.parse(request.url, request)
+    url.split(request.url, request)
   end
 
   local method  = request.method or 'GET'
