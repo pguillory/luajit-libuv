@@ -2,6 +2,7 @@ local class = require 'uv/class'
 local ffi = require 'ffi'
 local libhttp_parser = require 'uv/libhttp_parser'
 local uv_tcp_t = require 'uv/uv_tcp_t'
+local url = require 'uv.url'
 
 --------------------------------------------------------------------------------
 -- status_codes
@@ -54,42 +55,6 @@ status_codes[502] = 'Bad Gateway'
 status_codes[503] = 'Service Unavailable'
 status_codes[504] = 'Gateway Timeout'
 status_codes[505] = 'HTTP Version Not Supported'
-
---------------------------------------------------------------------------------
--- parse_url
---------------------------------------------------------------------------------
-
-local function parse_url(request)
-  local u = ffi.new('struct http_parser_url')
-  local r = libhttp_parser.http_parser_parse_url(request.url, #request.url, 0, u)
-  if r ~= 0 then return end
-
-  local function segment(name, id)
-    if bit.band(u.field_set, bit.lshift(1, id)) > 0 then
-      local field = u.field_data[id]
-      request[name] = request.url:sub(field.off + 1, field.off + field.len)
-    end
-  end
-
-  segment('schema', libhttp_parser.UF_SCHEMA)
-  segment('host', libhttp_parser.UF_HOST)
-  segment('port', libhttp_parser.UF_PORT)
-  segment('path', libhttp_parser.UF_PATH)
-  segment('query', libhttp_parser.UF_QUERY)
-  segment('fragment', libhttp_parser.UF_FRAGMENT)
-  segment('userinfo', libhttp_parser.UF_USERINFO)
-end
-
-do
-  local r = { url = 'http://127.0.0.1:7000/path/to/route?a=1&b=2#fragment' }
-  parse_url(r)
-  assert(r.schema == 'http')
-  assert(r.host == '127.0.0.1')
-  assert(r.port == '7000')
-  assert(r.path == '/path/to/route')
-  assert(r.query == 'a=1&b=2')
-  assert(r.fragment == 'fragment')
-end
 
 --------------------------------------------------------------------------------
 -- parse_http
@@ -222,7 +187,7 @@ function Server:listen(callback)
   self.tcp:listen(function(stream)
     local request = parse_http(stream, libhttp_parser.HTTP_REQUEST)
 
-    parse_url(request)
+    url.parse(request.url, request)
     request.socket = ffi.cast('uv_tcp_t*', stream)
 
     local status, headers, body = callback(request)
@@ -256,7 +221,7 @@ end
 
 function http.request(request)
   if request.url then
-    parse_url(request)
+    url.parse(request.url, request)
   end
 
   local method  = request.method or 'GET'

@@ -18,6 +18,7 @@ local uv = {}
 uv.timer = require 'uv.timer'
 uv.fs = require 'uv.fs'
 uv.http = require 'uv.http'
+uv.url = require 'uv.url'
 
 function uv.run(callback)
   if callback then
