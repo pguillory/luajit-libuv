@@ -112,8 +112,11 @@ luajit: deps/LuaJIT-2.0.3/src/luajit
 # etc...
 ################################################################################
 
-install: all
+install: all uninstall
 	cp -R src/uv ${LUA_SHAREDIR}/
+
+uninstall:
+	rm -rf ${LUA_SHAREDIR}/uv
 
 clean:
 	rm -rf deps/* src/uv/lib/*
