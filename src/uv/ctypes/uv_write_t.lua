@@ -1,6 +1,6 @@
 require 'uv/cdef'
 local ffi = require 'ffi'
-local ctype = require 'uv/ctype'
+local ctype = require 'uv/util/ctype'
 local libuv = require 'uv/libuv'
 local libuv2 = require 'uv/libuv2'
 

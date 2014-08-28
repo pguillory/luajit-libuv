@@ -1,9 +1,9 @@
 require 'uv/cdef'
 local ffi = require 'ffi'
-local ctype = require 'uv/ctype'
-local join = require 'uv/join'
+local ctype = require 'uv/util/ctype'
+local join = require 'uv/util/join'
 local libuv = require 'uv/libuv'
-local errno = require 'uv/errno'
+local errno = require 'uv/util/errno'
 
 --------------------------------------------------------------------------------
 -- uv_loop_t

@@ -1,4 +1,4 @@
-require 'uv/strict'
+require 'uv/util/strict'
 local uv = require 'uv'
 local fs = require 'uv.fs'
 

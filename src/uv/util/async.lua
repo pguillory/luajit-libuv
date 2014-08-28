@@ -1,5 +1,5 @@
 local ffi = require 'ffi'
-local join = require 'uv/join'
+local join = require 'uv/util/join'
 local libuv = require 'uv/libuv'
 
 local async, threads, id = {}, {}, 0

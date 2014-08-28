@@ -1,10 +1,10 @@
-local class = require 'uv/class'
+local class = require 'uv/util/class'
 local ffi = require 'ffi'
 local libuv = require 'uv/libuv'
 local libuv2 = require 'uv/libuv2'
 local uv_fs_t = require 'uv/ctypes/uv_fs_t'
 local uv_buf_t = require 'uv/ctypes/uv_buf_t'
-local errno = require 'uv/errno'
+local errno = require 'uv/util/errno'
 
 ffi.cdef [[
   mode_t umask(mode_t mask);

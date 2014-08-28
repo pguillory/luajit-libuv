@@ -1,7 +1,7 @@
-require 'uv/strict'
+require 'uv/util/strict'
 local uv = require 'uv'
 local http = require 'uv.http'
-local join = require 'uv/join'
+local join = require 'uv/util/join'
 
 --------------------------------------------------------------------------------
 -- basic server

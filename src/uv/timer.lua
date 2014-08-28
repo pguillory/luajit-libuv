@@ -1,4 +1,4 @@
-local join = require 'uv/join'
+local join = require 'uv/util/join'
 local uv_timer_t = require 'uv/ctypes/uv_timer_t'
 
 local timer = {}

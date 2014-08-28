@@ -1,11 +1,11 @@
 require 'uv/cdef'
 local ffi = require 'ffi'
-local async = require 'uv/async'
-local ctype = require 'uv/ctype'
+local async = require 'uv/util/async'
+local ctype = require 'uv/util/ctype'
 local libuv = require 'uv/libuv'
 local libuv2 = require 'uv/libuv2'
 local uv_buf_t = require 'uv/ctypes/uv_buf_t'
-local errno = require 'uv/errno'
+local errno = require 'uv/util/errno'
 
 --------------------------------------------------------------------------------
 -- uv_fs_t
