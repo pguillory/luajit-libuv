@@ -44,6 +44,7 @@ API Reference
 * [http](doc/http.md)
 * [parallel](doc/parallel.md)
 * [timer](doc/timer.md)
+* [url](doc/url.md)
 * [uv](doc/uv.md)
 
 See Also
