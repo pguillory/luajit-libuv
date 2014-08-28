@@ -1,4 +1,4 @@
-require 'strict'
+require 'uv/strict'
 local uv = require 'uv'
 local uv_tcp_t = require 'uv/uv_tcp_t'
 local uv_getaddrinfo_t = require 'uv/uv_getaddrinfo_t'

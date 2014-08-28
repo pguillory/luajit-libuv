@@ -1,4 +1,4 @@
-require 'strict'
+require 'uv/strict'
 local uv = require 'uv'
 local http = require 'uv.http'
 local join = require 'uv/join'

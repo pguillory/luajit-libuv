@@ -1,3 +1,4 @@
+require 'uv/strict'
 local uv = require 'uv'
 local timer = require 'uv.timer'
 

@@ -1,3 +1,4 @@
+require 'uv/strict'
 local expect = require 'expect'
 local url = require 'uv.url'
 
