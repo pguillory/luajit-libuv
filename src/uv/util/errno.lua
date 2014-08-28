@@ -1,4 +1,3 @@
-require 'uv/cdef'
 local ffi = require 'ffi'
 local libuv = require 'uv/libuv'
 

@@ -1,4 +1,3 @@
-require 'uv/cdef'
 local ffi = require 'ffi'
 local ctype = require 'uv/util/ctype'
 local join = require 'uv/util/join'
