@@ -1,9 +1,9 @@
-require 'uv/cdef'
 local ffi = require 'ffi'
 local async = require 'uv/util/async'
 local ctype = require 'uv/util/ctype'
 local libuv = require 'uv/libuv'
 local libuv2 = require 'uv/libuv2'
+local libc = require 'uv/libc'
 local uv_buf_t = require 'uv/ctypes/uv_buf_t'
 local errno = require 'uv/util/errno'
 
@@ -12,7 +12,7 @@ local errno = require 'uv/util/errno'
 --------------------------------------------------------------------------------
 
 local uv_fs_t = ctype('uv_fs_t', function(loop)
-  local self = ffi.cast('uv_fs_t*', ffi.C.malloc(ffi.sizeof('uv_fs_t')))
+  local self = ffi.cast('uv_fs_t*', libc.malloc(ffi.sizeof('uv_fs_t')))
   self.loop = loop or libuv.uv_default_loop()
   return self
 end)

@@ -1,14 +1,11 @@
 require 'uv/util/strict'
 local uv = require 'uv'
 local fs = require 'uv.fs'
+local libc = require 'uv/libc'
 
 local ffi = require 'ffi'
-ffi.cdef [[
-  uid_t getuid(void);
-  gid_t getgid(void);
-]]
-local uid = ffi.C.getuid()
-local gid = ffi.C.getgid()
+local uid = libc.getuid()
+local gid = libc.getgid()
 
 do
   fs.with_tempdir(function(dir)

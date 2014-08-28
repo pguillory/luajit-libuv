@@ -1,8 +1,8 @@
-require 'uv/cdef'
 local ffi = require 'ffi'
 local async = require 'uv/util/async'
 local ctype = require 'uv/util/ctype'
 local libuv = require 'uv/libuv'
+local libc = require 'uv/libc'
 
 local AF_INET = 2
 local AF_INET6 = 28
@@ -20,7 +20,7 @@ function sockaddr_in:ip()
 end
 
 function sockaddr_in:port()
-  return ffi.C.ntohs(self.sin_port)
+  return libc.ntohs(self.sin_port)
 end
 
 --------------------------------------------------------------------------------
@@ -28,16 +28,14 @@ end
 --------------------------------------------------------------------------------
 
 local uv_getaddrinfo_t = ctype('uv_getaddrinfo_t', function(loop)
-  local self = ffi.cast('uv_getaddrinfo_t*', ffi.C.malloc(ffi.sizeof('uv_getaddrinfo_t')))
+  local self = ffi.cast('uv_getaddrinfo_t*', libc.malloc(ffi.sizeof('uv_getaddrinfo_t')))
   self.loop = loop or libuv.uv_default_loop()
   return self
 end)
 
 function uv_getaddrinfo_t:free()
-  ffi.C.free(self)
+  libc.free(self)
 end
-
-ffi.cdef [[ uint16_t ntohs(uint16_t netshort); ]]
 
 function uv_getaddrinfo_t:getaddrinfo(node, service)
   local hints = ffi.new('struct addrinfo')

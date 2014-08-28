@@ -1,10 +1,10 @@
-require 'uv/cdef'
 local ffi = require 'ffi'
 local async = require 'uv/util/async'
 local ctype = require 'uv/util/ctype'
 local join = require 'uv/util/join'
 local libuv = require 'uv/libuv'
 local libuv2 = require 'uv/libuv2'
+local libc = require 'uv/libc'
 local uv_buf_t = require 'uv/ctypes/uv_buf_t'
 local uv_connect_t = require 'uv/ctypes/uv_connect_t'
 local uv_getaddrinfo_t = require 'uv/ctypes/uv_getaddrinfo_t'
@@ -14,7 +14,7 @@ local uv_getaddrinfo_t = require 'uv/ctypes/uv_getaddrinfo_t'
 --------------------------------------------------------------------------------
 
 local uv_tcp_t = ctype('uv_tcp_t', function(loop)
-  local self = ffi.cast('uv_tcp_t*', ffi.C.malloc(ffi.sizeof('uv_tcp_t')))
+  local self = ffi.cast('uv_tcp_t*', libc.malloc(ffi.sizeof('uv_tcp_t')))
   libuv.uv_tcp_init(loop or libuv.uv_default_loop(), self)
   return self
 end)
@@ -53,7 +53,7 @@ function uv_tcp_t:read()
   libuv2.uv2_tcp_read_stop(self)
   self.loop:assert(nread)
   local chunk = (nread < 0) and '' or ffi.string(buf.base, nread)
-  ffi.C.free(buf.base)
+  libc.free(buf.base)
   return chunk, nread
 end
 
@@ -93,19 +93,19 @@ end
 function uv_tcp_t:close()
   libuv2.uv2_tcp_close(self, async.uv_close_cb)
   async.yield(self)
-  ffi.C.free(self)
+  libc.free(self)
 end
 
 function uv_tcp_t:getsockname()
   local addr = ffi.new('struct sockaddr')
   local len = ffi.new('int[1]')
   len[0] = ffi.sizeof(addr)
-  local buf = ffi.C.malloc(4096)
+  local buf = libc.malloc(4096)
   self.loop:assert(libuv.uv_tcp_getsockname(self, addr, len))
   addr = ffi.cast('struct sockaddr_in*', addr)
   self.loop:assert(libuv.uv_ip4_name(addr, buf, 4096))
   local peername = ffi.string(buf)
-  ffi.C.free(buf)
+  libc.free(buf)
   return peername
 end
 
@@ -113,12 +113,12 @@ function uv_tcp_t:getpeername()
   local addr = ffi.new('struct sockaddr')
   local len = ffi.new('int[1]')
   len[0] = ffi.sizeof(addr)
-  local buf = ffi.C.malloc(4096)
+  local buf = libc.malloc(4096)
   self.loop:assert(libuv.uv_tcp_getpeername(self, addr, len))
   addr = ffi.cast('struct sockaddr_in*', addr)
   self.loop:assert(libuv.uv_ip4_name(addr, buf, 4096))
   local peername = ffi.string(buf)
-  ffi.C.free(buf)
+  libc.free(buf)
   return peername
 end
 

@@ -2,14 +2,12 @@ local class = require 'uv/util/class'
 local ffi = require 'ffi'
 local libuv = require 'uv/libuv'
 local libuv2 = require 'uv/libuv2'
+local libc = require 'uv/libc'
 local uv_fs_t = require 'uv/ctypes/uv_fs_t'
 local uv_buf_t = require 'uv/ctypes/uv_buf_t'
 local errno = require 'uv/util/errno'
 
-ffi.cdef [[
-  mode_t umask(mode_t mask);
-]]
--- ffi.C.umask(0)
+-- libc.umask(0)
 
 
 --------------------------------------------------------------------------------
@@ -211,9 +209,9 @@ local fs = {}
 function fs.open(path, flags, mode)
   local flags = flags_atoi[flags or 'r']
   local mode = mode_atoi[mode or '700']
-  local mask = ffi.C.umask(0)
+  local mask = libc.umask(0)
   local descriptor = uv_fs_t():open(path, flags, mode)
-  ffi.C.umask(mask)
+  libc.umask(mask)
   return File(descriptor)
 end
 

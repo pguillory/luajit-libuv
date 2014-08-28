@@ -1,21 +1,21 @@
-require 'uv/cdef'
 local ffi = require 'ffi'
 local async = require 'uv/util/async'
 local ctype = require 'uv/util/ctype'
 local libuv = require 'uv/libuv'
+local libc = require 'uv/libc'
 
 --------------------------------------------------------------------------------
 -- uv_timer_t
 --------------------------------------------------------------------------------
 
 local uv_timer_t = ctype('uv_timer_t', function(loop)
-  local self = ffi.cast('uv_timer_t*', ffi.C.malloc(ffi.sizeof('uv_timer_t')))
+  local self = ffi.cast('uv_timer_t*', libc.malloc(ffi.sizeof('uv_timer_t')))
   libuv.uv_timer_init(loop or libuv.uv_default_loop(), self)
   return self
 end)
 
 function uv_timer_t:free()
-  ffi.C.free(self)
+  libc.free(self)
 end
 
 function uv_timer_t:every(timeout, callback)
