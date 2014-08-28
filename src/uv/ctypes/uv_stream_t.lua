@@ -6,6 +6,7 @@ local libuv2 = require 'uv/libuv2'
 local libc = require 'uv/libc'
 local uv_buf_t = require 'uv/ctypes/uv_buf_t'
 local uv_write_t = require 'uv/ctypes/uv_write_t'
+local uv_loop_t = require 'uv/ctypes/uv_loop_t'
 
 --------------------------------------------------------------------------------
 -- uv_stream_t

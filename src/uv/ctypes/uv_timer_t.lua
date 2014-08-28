@@ -3,6 +3,7 @@ local async = require 'uv/util/async'
 local ctype = require 'uv/util/ctype'
 local libuv = require 'uv/libuv'
 local libc = require 'uv/libc'
+local uv_loop_t = require 'uv/ctypes/uv_loop_t'
 
 --------------------------------------------------------------------------------
 -- uv_timer_t

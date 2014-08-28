@@ -5,6 +5,7 @@ local libuv = require 'uv/libuv'
 local libuv2 = require 'uv/libuv2'
 local libc = require 'uv/libc'
 local uv_buf_t = require 'uv/ctypes/uv_buf_t'
+local uv_loop_t = require 'uv/ctypes/uv_loop_t'
 local errno = require 'uv/util/errno'
 
 --------------------------------------------------------------------------------

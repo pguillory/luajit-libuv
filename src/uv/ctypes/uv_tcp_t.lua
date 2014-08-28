@@ -8,6 +8,7 @@ local libc = require 'uv/libc'
 local uv_buf_t = require 'uv/ctypes/uv_buf_t'
 local uv_connect_t = require 'uv/ctypes/uv_connect_t'
 local uv_getaddrinfo_t = require 'uv/ctypes/uv_getaddrinfo_t'
+local uv_loop_t = require 'uv/ctypes/uv_loop_t'
 
 --------------------------------------------------------------------------------
 -- uv_tcp_t
