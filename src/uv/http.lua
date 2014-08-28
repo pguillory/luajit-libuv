@@ -1,7 +1,7 @@
 local class = require 'uv/class'
 local ffi = require 'ffi'
 local libhttp_parser = require 'uv/libhttp_parser'
-local uv_tcp_t = require 'uv/uv_tcp_t'
+local uv_tcp_t = require 'uv/ctypes/uv_tcp_t'
 local url = require 'uv.url'
 
 --------------------------------------------------------------------------------

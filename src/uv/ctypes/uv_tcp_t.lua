@@ -5,9 +5,9 @@ local ctype = require 'uv/ctype'
 local join = require 'uv/join'
 local libuv = require 'uv/libuv'
 local libuv2 = require 'uv/libuv2'
-local uv_buf_t = require 'uv/uv_buf_t'
-local uv_connect_t = require 'uv/uv_connect_t'
-local uv_getaddrinfo_t = require 'uv/uv_getaddrinfo_t'
+local uv_buf_t = require 'uv/ctypes/uv_buf_t'
+local uv_connect_t = require 'uv/ctypes/uv_connect_t'
+local uv_getaddrinfo_t = require 'uv/ctypes/uv_getaddrinfo_t'
 
 --------------------------------------------------------------------------------
 -- uv_tcp_t

@@ -4,8 +4,8 @@ local async = require 'uv/async'
 local ctype = require 'uv/ctype'
 local libuv = require 'uv/libuv'
 local libuv2 = require 'uv/libuv2'
-local uv_buf_t = require 'uv/uv_buf_t'
-local uv_write_t = require 'uv/uv_write_t'
+local uv_buf_t = require 'uv/ctypes/uv_buf_t'
+local uv_write_t = require 'uv/ctypes/uv_write_t'
 
 --------------------------------------------------------------------------------
 -- uv_stream_t
