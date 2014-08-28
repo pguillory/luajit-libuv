@@ -3,16 +3,46 @@ luajit-libuv ![build status](https://travis-ci.org/pguillory/luajit-libuv.svg)
 
 Status: *in development*
 
-This project provides a [Luajit FFI] binding for the [libuv] library, which
-powers the async I/O behind [Node.js] and others. In contrast to [luv], it
-uses Lua coroutines to enable asynchronous I/O behavior with synchronous
-syntax.
+This project provides a [LuaJIT FFI] binding to [libuv], the async I/O library
+powering [Node.js]. It uses Lua coroutines to provide non-blocking I/O with
+synchronous syntax.
+
+For example, you can build a web server that performs I/O (like reading a file
+or talking to a database) while generating each response, and it will process
+multiple requests simultaneously.
+
+```lua
+local http = require 'uv.http'
+local fs = require 'uv.fs'
+
+http.listen('127.0.0.1', 80, function(request)
+  return 200, {}, fs.readfile('hello.txt')
+end)
+```
+
+Or you can perform multiple HTTP requests simultaneously.
+
+```lua
+local http = require 'uv.http'
+local parallel = require 'uv.parallel'
+
+local requests = {
+  { url = 'http://example.com/page1' },
+  { url = 'http://example.com/page2' },
+}
+local responses = parallel.map(requests, http.request)
+```
 
 Requirements
 ------------
 
-Just standard C build tools. [libuv] and [http-parser] are bundled. A bundled
-version of [luajit] is used to run the tests.
+- [LuaJIT]. Regular Lua won't run it. That said, you probably want LuaJIT
+  anyway.
+
+- Standard build tools.
+
+- [libuv] and [http-parser] are bundled and do not need to be installed
+  separately.
 
 Installation
 ------------
@@ -24,33 +54,20 @@ make
 make install
 ```
 
-Usage
------
-
-A simple web server:
-
-```lua
-local http = require 'uv.http'
-
-http.listen('127.0.0.1', 80, function(request)
-  return 200, {}, 'Hello world!'
-end)
-```
-
 API Reference
 -------------
 
-* [fs](doc/fs.md)
-* [http](doc/http.md)
-* [parallel](doc/parallel.md)
-* [timer](doc/timer.md)
-* [url](doc/url.md)
-* [uv](doc/uv.md)
+* [fs](doc/fs.md) - File system
+* [http](doc/http.md) - HTTP client and server
+* [parallel](doc/parallel.md) - Parallel processing
+* [timer](doc/timer.md) - Timers
+* [url](doc/url.md) - URL parsing and encoding
+* [uv](doc/uv.md) - Utility functions
 
 See Also
 --------
 
-Lots of people have done this before.
+Other people have done things like this.
 
 - [luvit](https://github.com/luvit/luvit)
 - [LuaNode](https://github.com/ignacio/LuaNode)
@@ -65,5 +82,5 @@ Lots of people have done this before.
 [Node.js]: http://nodejs.org/
 [luv]: https://github.com/creationix/luv
 [http-parser]: https://github.com/joyent/http-parser
-[luajit]: http://luajit.org/
+[LuaJIT]: http://luajit.org/
 [FIFO]: http://en.wikipedia.org/wiki/Named_pipe
