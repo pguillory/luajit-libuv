@@ -1,3 +1,4 @@
+require 'uv/ctypes/init'
 local join = require 'uv/util/join'
 local timer = require 'uv.timer'
 local libuv = require 'uv/libuv'

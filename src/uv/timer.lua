@@ -1,3 +1,4 @@
+require 'uv/ctypes/init'
 local join = require 'uv/util/join'
 local uv_timer_t = require 'uv/ctypes/uv_timer_t'
 

@@ -1,3 +1,4 @@
+require 'uv/ctypes/init'
 local class = require 'uv/util/class'
 local ffi = require 'ffi'
 local libhttp_parser = require 'uv/libhttp_parser'
