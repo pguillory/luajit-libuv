@@ -1,7 +1,7 @@
 API Reference - timer
 =====================
 
-**timer.set(timeout, callback)**
+### timer.set(timeout, callback)
 
 Schedule a function to be called once in the future. Returns immediately.
 
@@ -14,7 +14,7 @@ uv.run()
 print('The timer dinged.')
 ```
 
-**timer.every(timeout, callback)**
+### timer.every(timeout, callback)
 
 Schedule a function to be called every `timeout` milliseconds. Returns
 immediately.
@@ -29,7 +29,7 @@ end)
 uv.run()
 ```
 
-**timer.sleep(timeout, callback)**
+### timer.sleep(timeout, callback)
 
 Yield the current coroutine for `timeout` milliseconds.
 

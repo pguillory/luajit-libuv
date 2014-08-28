@@ -11,7 +11,7 @@ local uv = require 'uv'
 local fs = uv.fs
 ```
 
-**uv.run()**
+### uv.run()
 
 Run the libuv event loop. This is only necessary if an I/O request was created
 in a coroutine without the event loop already running. Requests made outside a

@@ -3,7 +3,7 @@ API Reference - http
 
 The `http` module provides both a client and a server.
 
-**http.request(request)**
+### http.request(request)
 
 Send an HTTP request and return the response. `request` should be a table with
 the following fields:
@@ -41,7 +41,7 @@ local response = http.request { url = 'http://example.com/page1' }
 local response = http.request { host = 'example.com', path = '/page1' }
 ```
 
-**http.listen(host, port, callback)**
+### http.listen(host, port, callback)
 
 Listen for requests at the given host and port. Use a `host` value of
 "0.0.0.0" to listen on all network interfaces, or "127.0.0.1" to only listen
@@ -71,12 +71,12 @@ Requests are tables containing the following keys:
 
 Note that the query string is not parsed. See the [url](url.md) module.
 
-**http.format_date(time)**
+### http.format_date(time)
 
 Format a date according to RFC 1123, which is the preferred date format in
 HTTP. `time` is a number representing a [Unix time]. It defaults to the current time, given by `os.time()`.
 
-**http.parse_date(date_string)**
+### http.parse_date(date_string)
 
 Parse a date string in any of the acceptable [HTTP date formats].
 

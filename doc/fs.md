@@ -3,7 +3,7 @@ API Reference - fs
 
 The `fs` module provides access to the file system.
 
-**fs.open(path, flags, mode)**
+### fs.open(path, flags, mode)
 
 Open a file. `flags` can have the following values:
 
@@ -26,28 +26,28 @@ file:write('hello world')
 file:close()
 ```
 
-**fs.unlink(path)**
+### fs.unlink(path)
 
 Delete a file.
 
-**fs.mkdir(path, mode)**
+### fs.mkdir(path, mode)
 
 Create a directory. See `fs.open` for documentation on `mode`.
 
-**fs.rmdir(path)**
+### fs.rmdir(path)
 
 Delete a directory. It must be empty.
 
-**fs.chmod(path, mode)**
+### fs.chmod(path, mode)
 
 Change the permissions of a file/directory. See `fs.open` for documentation on
 `mode`.
 
-**fs.chown(path, uid, gid)**
+### fs.chown(path, uid, gid)
 
 Change the owner of a file/directory. `uid` and `gid` should be numbers.
 
-**fs.stat(path)**
+### fs.stat(path)
 
 Retrieve information about a file/directory. Returns a table with the following keys:
 
@@ -66,51 +66,51 @@ Retrieve information about a file/directory. Returns a table with the following 
 - `birthtime`:      Time the file was created (second precision).
 - `birthtimensec`:  Time the file was created (nanosecond precision).
 
-**fs.lstat(path)**
+### fs.lstat(path)
 
 Same as `fs.stat`, but doesn't follow symlinks.
 
-**fs.rename(path, new_path)**
+### fs.rename(path, new_path)
 
 Rename a file.
 
-**fs.link(path, new_path)**
+### fs.link(path, new_path)
 
 Create a hard link.
 
-**fs.symlink(path, new_path)**
+### fs.symlink(path, new_path)
 
 Create a symlink.
 
-**fs.readlink(path)**
+### fs.readlink(path)
 
 Read the value of a symlink.
 
-**fs.readfile(path)**
+### fs.readfile(path)
 
 Get the full contents of a file as a string.
 
-**fs.writefile(path, body)**
+### fs.writefile(path, body)
 
 Write a string to a file. Truncates the file if it already exists.
 
-**fs.tmpname()**
+### fs.tmpname()
 
 Get a temporary filename.
 
-**fs.cwd()**
+### fs.cwd()
 
 Get the current working directory.
 
-**fs.chdir(dir)**
+### fs.chdir(dir)
 
 Change the current working directory.
 
-**fs.readdir(path)**
+### fs.readdir(path)
 
 Get a list of files/subdirectories in a directory.
 
-**fs.readdir_r(path)**
+### fs.readdir_r(path)
 
 Get a list of all files under a directory and its descendent subdirectories.
 Returns a flat list of filenames.
@@ -127,15 +127,15 @@ fs.with_tempdir(function(dir)
 end)
 ```
 
-**fs.rm_rf(path)**
+### fs.rm_rf(path)
 
 Delete a file or directory. If it is a directory, its contents are deleted as well. *Be careful with this one!*
 
-**fs.dirname(filename)**
+### fs.dirname(filename)
 
-**fs.basename(filename)**
+### fs.basename(filename)
 
-**fs.extname(filename)**
+### fs.extname(filename)
 
 Extract the directory, basename, and extension from a filename, respectively.
 
@@ -145,7 +145,7 @@ assert(fs.basename('/path/to/file.txt') == 'file')
 assert(fs.extname ('/path/to/file.txt') == '.txt')
 ```
 
-**fs.with_tempdir(callback)**
+### fs.with_tempdir(callback)
 
 Create a directory, pass it to a callback, and delete the directory when the
 callback returns.
