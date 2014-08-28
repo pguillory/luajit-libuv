@@ -1,5 +1,5 @@
 require 'uv/util/strict'
-local expect = require 'expect'
+local expect = require 'uv/util/expect'
 local url = require 'uv.url'
 
 do
@@ -45,8 +45,8 @@ end
 
 do
   local function test(base, relative, expected)
-    local result = url.relative(base, relative)
-    assert(result == expected, 'Expected ' .. tostring(expected) .. ', got ' .. tostring(result))
+    local actual = url.relative(base, relative)
+    expect.equal(actual, expected)
   end
 
   test('/a/b/c',      '/d/e/f', '/d/e/f')

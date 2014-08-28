@@ -2,6 +2,7 @@ require 'uv/util/strict'
 local uv = require 'uv'
 local uv_tcp_t = require 'uv/ctypes/uv_tcp_t'
 local uv_getaddrinfo_t = require 'uv/ctypes/uv_getaddrinfo_t'
+local expect = require 'uv/util/expect'
 
 for i = 1, 1000 do
   uv.run(function()
@@ -12,14 +13,14 @@ uv.run(function()
   local server = uv_tcp_t()
   server:bind('127.0.0.1', 7000)
   server:listen(function(stream)
-    assert(stream:read() == 'foo')
+    expect.equal(stream:read(), 'foo')
     stream:write('bar')
   end)
 
   local client = uv_tcp_t()
   local stream = client:connect('127.0.0.1', 7000)
   stream:write('foo')
-  assert(stream:read() == 'bar')
+  expect.equal(stream:read(), 'bar')
   stream:close()
 
   server:close()
@@ -31,8 +32,8 @@ uv.run(function()
   local addrs = getaddrinfo:getaddrinfo('123.123.123.123', 'https')
   assert(#addrs > 0)
   for _, addr in ipairs(addrs) do
-    assert(addr:ip() == '123.123.123.123')
-    assert(addr:port() == 443)
+    expect.equal(addr:ip(), '123.123.123.123')
+    expect.equal(addr:port(), 443)
   end
 
   -- local addrs = getaddrinfo:getaddrinfo('google.com', 'http')

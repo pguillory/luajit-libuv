@@ -2,6 +2,7 @@ require 'uv/util/strict'
 local uv = require 'uv'
 local http = require 'uv.http'
 local join = require 'uv/util/join'
+local expect = require 'uv/util/expect'
 
 --------------------------------------------------------------------------------
 -- basic server
@@ -9,10 +10,10 @@ local join = require 'uv/util/join'
 
 uv.run(function()
   local server = http.listen('127.0.0.1', 7000, function(request)
-    assert(request.method == 'GET')
-    assert(request.path == '/path/to/route')
-    assert(request.query == 'a=1&b=2')
-    assert(request.headers['User-Agent'] == 'test')
+    expect.equal(request.method, 'GET')
+    expect.equal(request.path, '/path/to/route')
+    expect.equal(request.query, 'a=1&b=2')
+    expect.equal(request.headers['User-Agent'], 'test')
     return 200, { Expires = '-1' }, 'hello world'
   end)
 
@@ -21,27 +22,27 @@ uv.run(function()
     headers = { ['User-Agent'] = 'test' },
   }
 
-  assert(response.status == 200)
-  assert(response.headers['Expires'] == '-1')
-  assert(response.headers['Content-Length'] == '11')
-  assert(response.body == 'hello world')
+  expect.equal(response.status, 200)
+  expect.equal(response.headers['Expires'], '-1')
+  expect.equal(response.headers['Content-Length'], '11')
+  expect.equal(response.body, 'hello world')
 
   local response = http.request{
     host = '127.0.0.1', port = 7000, path = '/path/to/route', query = 'a=1&b=2',
     headers = { ['User-Agent'] = 'test' },
   }
 
-  assert(response.status == 200)
-  assert(response.headers['Expires'] == '-1')
-  assert(response.headers['Content-Length'] == '11')
-  assert(response.body == 'hello world')
+  expect.equal(response.status, 200)
+  expect.equal(response.headers['Expires'], '-1')
+  expect.equal(response.headers['Content-Length'], '11')
+  expect.equal(response.body, 'hello world')
 
   server:close()
 end)
 
 uv.run(function()
   local server = http.listen('127.0.0.1', 7000, function(request)
-    assert(request.method == 'POST')
+    expect.equal(request.method, 'POST')
     return 200, {}, ''
   end)
 
@@ -95,7 +96,7 @@ uv.run(function()
 
   http.request { host = '127.0.0.1', port = 7000 }
 
-  assert(access_log == '127.0.0.1 - - [1999-12-31T23:59:59Z] "GET /?" 200 11 "-" "luajit-libuv"\n')
+  expect.equal(access_log, '127.0.0.1 - - [1999-12-31T23:59:59Z] "GET /?" 200 11 "-" "luajit-libuv"\n')
 
   server:close()
 end)
@@ -120,7 +121,7 @@ do
   
   uv.run()
 
-  assert(response.body == 'ok')
+  expect.equal(response.body, 'ok')
 end
 
 --------------------------------------------------------------------------------
@@ -129,10 +130,10 @@ end
 
 do
   local time = 1408986974LL
-  assert(http.format_date(time) == 'Mon, 25 Aug 2014 17:16:14 GMT')
+  expect.equal(http.format_date(time), 'Mon, 25 Aug 2014 17:16:14 GMT')
 
-  assert(http.parse_date('Sun, 06 Nov 1994 08:49:37 GMT') == 784111777)
-  assert(http.parse_date('Sunday, 06-Nov-94 08:49:37 GMT') == 784111777)
-  assert(http.parse_date('Sun Nov  6 08:49:37 1994') == 784111777)
-  assert(http.parse_date('asdf') == nil)
+  expect.equal(http.parse_date('Sun, 06 Nov 1994 08:49:37 GMT'), 784111777)
+  expect.equal(http.parse_date('Sunday, 06-Nov-94 08:49:37 GMT'), 784111777)
+  expect.equal(http.parse_date('Sun Nov  6 08:49:37 1994'), 784111777)
+  expect.equal(http.parse_date('asdf'), nil)
 end
