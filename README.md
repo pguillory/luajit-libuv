@@ -1,4 +1,4 @@
-luajit-libuv ![build status](https://travis-ci.org/pguillory/luajit-libuv.svg)
+luajit-libuv [![build status](https://travis-ci.org/pguillory/luajit-libuv.svg)](https://travis-ci.org/pguillory/luajit-libuv)
 ============
 
 Status: *in development*
