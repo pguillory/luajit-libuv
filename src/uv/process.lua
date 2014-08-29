@@ -1,3 +1,4 @@
+require 'uv/ctypes/init'
 local ffi = require 'ffi'
 local ctype = require 'uv/util/ctype'
 local libuv = require 'uv/libuv'
@@ -47,6 +48,30 @@ function process.path()
   assert(status == 0)
   local result = ffi.string(buf.base, buf.len)
   buf:free()
+  return result
+end
+
+function process.usage()
+  local usage = ffi.new('uv_rusage_t')
+  libuv.uv_default_loop():assert(libuv.uv_getrusage(usage))
+  local result = {
+    utime = usage.ru_utime.tv_usec,
+    stime = usage.ru_stime.tv_usec,
+    maxrss = usage.ru_maxrss,
+    ixrss = usage.ru_ixrss,
+    idrss = usage.ru_idrss,
+    isrss = usage.ru_isrss,
+    minflt = usage.ru_minflt,
+    majflt = usage.ru_majflt,
+    nswap = usage.ru_nswap,
+    inblock = usage.ru_inblock,
+    oublock = usage.ru_oublock,
+    msgsnd = usage.ru_msgsnd,
+    msgrcv = usage.ru_msgrcv,
+    nsignals = usage.ru_nsignals,
+    nvcsw = usage.ru_nvcsw,
+    nivcsw = usage.ru_nivcsw,
+  }
   return result
 end
 

@@ -31,3 +31,25 @@ process.on('SIGINT', function()
   uv.stop()
 end)
 ```
+
+### process.usage()
+
+Returns a table describing the current process's resource usage with the
+following keys:
+
+- `utime`: User CPU time used, in microseconds.
+- `stime`: System CPU time used, in microseconds.
+- `maxrss`: Maximum resident set size.
+- `ixrss`: Integral shared memory size.
+- `idrss`: Integral unshared data size.
+- `isrss`: Integral unshared stack size.
+- `minflt`: Page reclaims (soft page faults).
+- `majflt`: Page faults (hard page faults).
+- `nswap`: Swaps.
+- `inblock`: Block input operations.
+- `oublock`: Block output operations.
+- `msgsnd`: IPC messages sent.
+- `msgrcv`: IPC messages received.
+- `nsignals`: Signals received.
+- `nvcsw`: Voluntary context switches.
+- `nivcsw`: Involuntary context switches.
