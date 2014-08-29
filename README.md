@@ -15,8 +15,8 @@ multiple requests simultaneously.
 local http = require 'uv.http'
 local fs = require 'uv.fs'
 
-http.listen('127.0.0.1', 80, function(request)
-  return 200, {}, fs.readfile('hello.txt')
+http.listen('127.0.0.1', 8080, function(request)
+  return 200, {}, fs.readfile('README.md')
 end)
 ```
 
@@ -78,6 +78,7 @@ Other people have done things like this.
 - [luauv](https://github.com/grrrwaaa/luauv)
 - [uv](https://github.com/steveyen/uv)
 - [lua-uv](https://github.com/bnoordhuis/lua-uv/)
+- [Ray](https://github.com/richardhundt/luv/tree/ray)
 
 [Luajit FFI]: http://luajit.org/ext_ffi.html
 [libuv]: https://github.com/joyent/libuv
