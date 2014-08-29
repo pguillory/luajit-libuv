@@ -4,6 +4,14 @@ local process = require 'uv.process'
 local timer = require 'uv.timer'
 local expect = require 'uv/util/expect'
 
+do
+  local signal = process.spawn { './luajit', '-v' }
+  expect.equal(signal, 0)
+
+  local signal = process.spawn { '/bin/echo', 'Hello', 'world' }
+  expect.equal(signal, 0)
+end
+
 uv.run(function()
   local count = 0
   process.on('hup', function()

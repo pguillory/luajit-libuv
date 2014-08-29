@@ -1,11 +1,14 @@
 require 'uv/ctypes/init'
 local ffi = require 'ffi'
+local async = require 'uv/util/async'
 local ctype = require 'uv/util/ctype'
 local libuv = require 'uv/libuv'
 local libuv2 = require 'uv/libuv2'
 local libc = require 'uv/libc'
 local uv_buf_t = require 'uv/ctypes/uv_buf_t'
 local uv_signal_t = require 'uv/ctypes/uv_signal_t'
+local uv_process_t = require 'uv/ctypes/uv_process_t'
+local uv_process_options_t = require 'uv/ctypes/uv_process_options_t'
 local join = require 'uv/util/join'
 
 local signals = {
@@ -84,6 +87,54 @@ function process.title(value)
     libuv.uv_default_loop():assert(uv_set_process_title(value))
   end
   return title
+end
+
+function process.spawn(args)
+  local options = uv_process_options_t()
+
+  options.exit_cb = async.uv_exit_cb
+
+  assert(#args >= 1, 'path to executable required')
+  options.file = args[1]
+
+  options.args = ffi.new('char*[?]', #args + 1)
+  for i, arg in ipairs(args) do
+    options.args[i - 1] = ffi.cast('char*', arg)
+  end
+
+  options.stdio_count = 3
+  local stdio = ffi.new('uv_stdio_container_t[?]', 3)
+  options.stdio = stdio
+
+  if type(args.stdin) == 'number' then
+    options.stdio[0].flags = libuv.UV_INHERIT_FD
+    options.stdio[0].data.fd = args.stdin
+  end
+
+  if type(args.stdout) == 'number' then
+    options.stdio[1].flags = libuv.UV_INHERIT_FD
+    options.stdio[1].data.fd = args.stdout
+  end
+
+  if type(args.stderr) == 'number' then
+    options.stdio[2].flags = libuv.UV_INHERIT_FD
+    options.stdio[2].data.fd = args.stderr
+  end
+
+  if args.uid then
+    options.uid = args.uid
+    options.flags = bit.bor(options.flags, libuv.UV_PROCESS_SETUID)
+  end
+
+  if args.gid then
+    options.gid = args.gid
+    options.flags = bit.bor(options.flags, libuv.UV_PROCESS_SETGID)
+  end
+
+  local req = uv_process_t()
+  local term_signal = req:spawn(options)
+  options:free()
+  return term_signal
 end
 
 return process

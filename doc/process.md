@@ -1,7 +1,39 @@
 API Reference - process
 =======================
 
-The `process` module provides functions for managing the current process.
+The `process` module provides functions for managing processes.
+
+### process.spawn(args)
+
+Spawn a child process. `args` should be a table containing the executable path
+at index 1, arguments at indexes 2+, and any of the following options:
+
+- `env`: A table of environment variables as key/value pairs. If `env` is
+  omitted, the child process will inherit the parent's environment.
+
+- `cwd`: Current working directory of the child process.
+
+- `stdin`: File descriptor to inherit as stdin. 0 causes it to inherit the
+  parent's stdin.
+
+- `stdout`: File descriptor to inherit as stdout. 1 causes it to inherit the
+  parent's stdout.
+
+- `stderr`: File descriptor to inherit as stderr. 2 causes it to inherit the
+  parent's stderr.
+
+- `uid`: User ID under which to run.
+
+- `gid`: Group ID under which to run.
+
+Returns the signal that terminated the child process, or 0 on successful exit.
+
+```lua
+local signal = process.spawn { '/bin/echo', 'Hello', 'world' }
+
+local file = fs.open('out.txt', 'w')
+process.spawn { '/bin/ls', cwd = fs.cwd(), stdout = file.descriptor }
+```
 
 ### process.pid()
 
