@@ -1,6 +1,7 @@
 require 'uv/ctypes/init'
 local class = require 'uv/util/class'
 local ffi = require 'ffi'
+local libuv = require 'uv/libuv'
 local libhttp_parser = require 'uv/libhttp_parser'
 local uv_tcp_t = require 'uv/ctypes/uv_tcp_t'
 local url = require 'uv.url'
@@ -217,6 +218,9 @@ function http.listen(host, port, callback)
   local server = http.server()
   server:bind(host, port)
   server:listen(callback)
+  if not coroutine.running() then
+    libuv.uv_default_loop():run()
+  end
   return server
 end
 
