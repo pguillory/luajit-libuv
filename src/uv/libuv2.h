@@ -9,3 +9,4 @@ int uv2_tcp_write(uv_write_t* req, uv_tcp_t* tcp, const uv_buf_t bufs[], unsigne
 int uv2_tcp_listen(uv_tcp_t* stream, int backlog, uv_connection_cb cb);
 int uv2_cwd(uv_buf_t* buf);
 int uv2_fs_open(uv_loop_t* loop, uv_fs_t* req, const char* path, int flags, int mode, uv_fs_cb cb);
+int uv2_exepath(uv_buf_t* buffer);

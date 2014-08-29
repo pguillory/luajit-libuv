@@ -57,3 +57,7 @@ int uv2_fs_open(uv_loop_t* loop, uv_fs_t* req, const char* path, int flags, int 
 
   return uv_fs_open(loop, req, path, flags2, mode, cb);
 }
+
+int uv2_exepath(uv_buf_t* buffer) {
+  return uv_exepath(buffer->base, &buffer->len);
+}

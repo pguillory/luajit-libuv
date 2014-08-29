@@ -42,3 +42,26 @@ uv.run(function()
   --   assert(addr:port() == 80)
   -- end
 end)
+
+do
+  local free, total = uv.free_memory(), uv.total_memory()
+  assert(free > 0)
+  assert(total > 0)
+  assert(free <= total)
+end
+
+do
+  local hrtime = uv.hrtime()
+  assert(hrtime > 0)
+end
+
+do
+  assert(uv.exe_path():find('luajit'))
+end
+
+do
+  local x, y, z = uv.loadavg()
+  assert(type(x) == 'number')
+  assert(type(y) == 'number')
+  assert(type(z) == 'number')
+end
