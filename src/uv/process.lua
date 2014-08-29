@@ -7,17 +7,19 @@ local uv_buf_t = require 'uv/ctypes/uv_buf_t'
 local uv_signal_t = require 'uv/ctypes/uv_signal_t'
 local join = require 'uv/util/join'
 
-local signum_atoi = {
-  ['SIGINT']   = libuv2.uv2_sigint(),
-  ['SIGHUP']   = libuv2.uv2_sighup(),
-  ['SIGWINCH'] = libuv2.uv2_sigwinch(),
-  ['int']   = libuv2.uv2_sigint(),
-  ['hup']   = libuv2.uv2_sighup(),
-  ['winch'] = libuv2.uv2_sigwinch(),
-  [libuv2.uv2_sigint()]   = libuv2.uv2_sigint(),
-  [libuv2.uv2_sighup()]   = libuv2.uv2_sighup(),
-  [libuv2.uv2_sigwinch()] = libuv2.uv2_sigwinch(),
+local signals = {
+  kill  = libuv2.uv2_sigkill(),
+  int   = libuv2.uv2_sigint(),
+  hup   = libuv2.uv2_sighup(),
+  winch = libuv2.uv2_sigwinch(),
 }
+
+local signum_atoi = {}
+for k, v in pairs(signals) do
+  signum_atoi[k] = v
+  signum_atoi['SIG' .. k:upper()] = v
+  signum_atoi[v] = v
+end
 
 local process = {}
 
@@ -35,7 +37,7 @@ function process.on(signum, callback)
 end
 
 function process.kill(pid, signum)
-  local signum = signum_atoi[signum]
+  local signum = signum_atoi[signum or 'kill']
   libuv.uv_default_loop():assert(libuv.uv_kill(pid, signum))
 end
 

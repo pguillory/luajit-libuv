@@ -62,6 +62,7 @@ API Reference
 * [fs](doc/fs.md) - File system
 * [http](doc/http.md) - HTTP client and server
 * [parallel](doc/parallel.md) - Parallel processing
+* [process](doc/process.md) - Process management
 * [timer](doc/timer.md) - Timers
 * [url](doc/url.md) - URL parsing and encoding
 * [uv](doc/uv.md) - Utility functions

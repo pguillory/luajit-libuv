@@ -62,6 +62,10 @@ int uv2_exepath(uv_buf_t* buffer) {
   return uv_exepath(buffer->base, &buffer->len);
 }
 
+int uv2_sigkill() {
+  return SIGKILL;
+}
+
 int uv2_sighup() {
   return SIGHUP;
 }
