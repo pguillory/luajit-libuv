@@ -2,7 +2,6 @@ require 'uv/ctypes/init'
 local ffi = require 'ffi'
 local libuv = require 'uv/libuv'
 local libuv2 = require 'uv/libuv2'
-local uv_buf_t = require 'uv/ctypes/uv_buf_t'
 
 --------------------------------------------------------------------------------
 -- uv
@@ -40,15 +39,6 @@ end
 
 function uv.hrtime()
   return libuv.uv_hrtime()
-end
-
-function uv.exe_path()
-  local buf = uv_buf_t()
-  local status = libuv2.uv2_exepath(buf)
-  assert(status == 0)
-  local result = ffi.string(buf.base, buf.len)
-  buf:free()
-  return result
 end
 
 function uv.loadavg()

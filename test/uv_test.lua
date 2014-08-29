@@ -56,10 +56,6 @@ do
 end
 
 do
-  assert(uv.exe_path():find('luajit'))
-end
-
-do
   local x, y, z = uv.loadavg()
   assert(type(x) == 'number')
   assert(type(y) == 'number')

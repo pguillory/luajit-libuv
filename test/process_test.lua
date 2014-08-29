@@ -16,3 +16,7 @@ uv.run(function()
   expect.equal(count, 3)
   uv.stop()
 end)
+
+do
+  assert(process.path():find('luajit'))
+end
