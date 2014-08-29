@@ -53,3 +53,8 @@ following keys:
 - `nsignals`: Signals received.
 - `nvcsw`: Voluntary context switches.
 - `nivcsw`: Involuntary context switches.
+
+### process.title(value)
+
+Change the current process's title to `value`, if present. Returns the
+existing title. I think this only works on Windows.

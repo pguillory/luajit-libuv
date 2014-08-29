@@ -75,4 +75,15 @@ function process.usage()
   return result
 end
 
+function process.title(value)
+  local buf = uv_buf_t()
+  libuv.uv_default_loop():assert(libuv.uv_get_process_title(buf.base, buf.len))
+  local title = ffi.string(buf.base)
+  buf:free()
+  if value then
+    libuv.uv_default_loop():assert(uv_set_process_title(value))
+  end
+  return title
+end
+
 return process
