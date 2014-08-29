@@ -47,4 +47,10 @@ function uv.loadavg()
   return avg[0], avg[1], avg[2]
 end
 
+function uv.uptime()
+  local time = ffi.new('double[1]')
+  libuv.uv_default_loop():assert(libuv.uv_uptime(time))
+  return time[0]
+end
+
 return uv

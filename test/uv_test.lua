@@ -61,3 +61,8 @@ do
   assert(type(y) == 'number')
   assert(type(z) == 'number')
 end
+
+do
+  local uptime = uv.uptime()
+  assert(uptime > 0)
+end

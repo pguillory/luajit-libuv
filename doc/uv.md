@@ -62,3 +62,7 @@ intervals but not for determining the current clock time.
 
 Returns the system load average over 1, 5, and 15 minutes. The load average is
 the average number of jobs in the run queue.
+
+### uv.uptime()
+
+Returns the number of seconds since the system booted.
