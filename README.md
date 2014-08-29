@@ -27,9 +27,11 @@ local http = require 'uv.http'
 local parallel = require 'uv.parallel'
 
 local requests = {
-  { url = 'http://example.com/page1' },
-  { url = 'http://example.com/page2' },
+  { url = 'http://www.google.com/' },
+  { url = 'http://www.bing.com/' },
+  { url = 'http://www.amazon.com/' },
 }
+
 local responses = parallel.map(requests, http.request)
 ```
 
