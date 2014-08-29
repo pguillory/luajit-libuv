@@ -22,6 +22,14 @@ function uv.run(callback)
   return libuv.uv_default_loop():run()
 end
 
+function uv.alive()
+  return libuv.uv_loop_alive(libuv.uv_default_loop()) ~= 0
+end
+
+function uv.stop()
+  return libuv.uv_stop(libuv.uv_default_loop())
+end
+
 function uv.free_memory()
   return libuv.uv_get_free_memory()
 end

@@ -61,3 +61,15 @@ int uv2_fs_open(uv_loop_t* loop, uv_fs_t* req, const char* path, int flags, int 
 int uv2_exepath(uv_buf_t* buffer) {
   return uv_exepath(buffer->base, &buffer->len);
 }
+
+int uv2_sighup() {
+  return SIGHUP;
+}
+
+int uv2_sigint() {
+  return SIGINT;
+}
+
+int uv2_sigwinch() {
+  return SIGWINCH;
+}
