@@ -46,3 +46,20 @@ loop.run(function()
   expect.equal(table.concat(buffer, ' '), 'before yield resume after')
   loop.stop()
 end)
+
+loop.run(function()
+  local buffer = {}
+  local count = 0
+  loop.idle(function()
+    count = count + 1
+    if not buffer[2] then
+      buffer[2] = 'idle'
+    end
+  end)
+  table.insert(buffer, 'before')
+  timer.sleep(2)
+  table.insert(buffer, 'after')
+  expect.equal(table.concat(buffer, ' '), 'before idle after')
+  assert(count > 0)
+  loop.stop()
+end)

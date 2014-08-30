@@ -3,6 +3,7 @@ local ffi = require 'ffi'
 local timer = require 'uv.timer'
 local libuv = require 'uv/libuv'
 local libuv2 = require 'uv/libuv2'
+local uv_idle_t = require 'uv/ctypes/uv_idle_t'
 local uv_prepare_t = require 'uv/ctypes/uv_prepare_t'
 local uv_check_t = require 'uv/ctypes/uv_check_t'
 local join = require 'uv/util/join'
@@ -22,6 +23,12 @@ end
 
 function loop.stop()
   return libuv.uv_stop(libuv.uv_default_loop())
+end
+
+function loop.idle(callback)
+  join(coroutine.create(function()
+    uv_idle_t():start(callback)
+  end))
 end
 
 function loop.yield(callback)
