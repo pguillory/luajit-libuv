@@ -201,12 +201,16 @@ function Server:listen(callback)
 
             local status, headers, body = callback(request)
 
+            if not headers['Server'] then
+              headers['Server'] = 'luajit-libuv'
+            end
+            headers['Content-Length'] = #body
+
             client:write('HTTP/1.1 ' .. status .. ' ' .. status_codes[status] .. '\n')
-            client:write('Server: luajit-libuv\n')
             for field, value in pairs(headers) do
               client:write(field .. ': ' .. value .. '\n')
             end
-            client:write('Content-Length: ' .. #body .. '\n\n')
+            client:write('\n')
             client:write(body)
           end
         end)
