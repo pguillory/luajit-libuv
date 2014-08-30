@@ -10,6 +10,7 @@ local expect = require 'uv/util/expect'
 
 loop.run(function()
   local server = http.listen('127.0.0.1', 7000, function(request)
+    expect.equal(request.ip, '127.0.0.1')
     expect.equal(request.method, 'GET')
     expect.equal(request.path, '/path/to/route')
     expect.equal(request.query, 'a=1&b=2')
@@ -64,42 +65,6 @@ end)
 --     method = 'post', body = 'lang=lua&code=print',
 --   }
 -- end)
-
---------------------------------------------------------------------------------
--- middleware pattern
---------------------------------------------------------------------------------
-
-loop.run(function()
-  local access_log = ''
-
-  local function with_logging(yield)
-    return function(request)
-      local status, headers, body = yield(request)
-
-      access_log = access_log .. string.format('%s - - [%s] "%s %s" %s %i %q %q\n',
-          request.socket:getpeername(),
-          '1999-12-31T23:59:59Z', -- os.date("!%Y-%m-%dT%TZ"),
-          request.method,
-          request.url,
-          status,
-          #body,
-          request.headers['Referer'] or '-',
-          request.headers['User-Agent'] or '-')
-
-      return status, headers, body
-    end
-  end
-
-  local server = http.listen('127.0.0.1', 7000, with_logging(function(request)
-    return 200, {}, 'hello world'
-  end))
-
-  http.request { host = '127.0.0.1', port = 7000 }
-
-  expect.equal(access_log, '127.0.0.1 - - [1999-12-31T23:59:59Z] "GET /?" 200 11 "-" "luajit-libuv"\n')
-
-  server:close()
-end)
 
 --------------------------------------------------------------------------------
 -- manually invoked event loop

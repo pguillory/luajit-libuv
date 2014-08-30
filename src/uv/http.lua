@@ -190,7 +190,7 @@ function Server:listen(callback)
     local request = parse_http(stream, libhttp_parser.HTTP_REQUEST)
 
     url.split(request.url, request)
-    request.socket = ffi.cast('uv_tcp_t*', stream)
+    request.ip = ffi.cast('uv_tcp_t*', stream):getpeername()
 
     local status, headers, body = callback(request)
 

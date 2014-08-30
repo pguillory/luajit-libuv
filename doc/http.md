@@ -25,6 +25,8 @@ the following fields:
 
 - `body`: Request body, for POST requests.
 
+- `ip`: The IP address of the connected client.
+
 The value returned will be a table containing the following fields:
 
 - `status`: The HTTP status. 200 on success, or 400+ on error.
