@@ -1,15 +1,7 @@
-API Reference - uv
-==================
+API Reference - uv.loop
+=======================
 
-The base `uv` module contains utility functions and references to the
-submodules. For instance, the `fs` module can be accessed in two ways:
-
-```lua
-local fs = require 'uv.fs'
--- or
-local uv = require 'uv'
-local fs = uv.fs
-```
+The `loop` module provides direct control over the libuv event loop.
 
 ### loop.run()
 
@@ -37,32 +29,10 @@ while awaiting the result. The event loop is not running, so unless we called
 `loop.run()`, the program would exit without performing the I/O request and the
 coroutine would never resume.
 
-### uv.alive()
+### loop.alive()
 
 Check whether the libuv event loop is running.
 
-### uv.stop()
+### loop.stop()
 
 Stop the libuv event loop.
-
-### uv.free_memory()
-
-Returns the amount of free memory available to the system, in bytes.
-
-### uv.total_memory()
-
-Returns the total amount of memory in the system, in bytes.
-
-### uv.hrtime()
-
-Returns a high-resolution time in nanoseconds. It is useful for measuring
-intervals but not for determining the current clock time.
-
-### uv.loadavg()
-
-Returns the system load average over 1, 5, and 15 minutes. The load average is
-the average number of jobs in the run queue.
-
-### uv.uptime()
-
-Returns the number of seconds since the system booted.
