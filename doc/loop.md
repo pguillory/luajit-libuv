@@ -36,3 +36,11 @@ Check whether the libuv event loop is running.
 ### loop.stop()
 
 Stop the libuv event loop.
+
+### loop.yield(callback)
+
+Call `callback` each time Lua yields control to the event loop.
+
+### loop.resume(callback)
+
+Call `callback` each time Lua resumes control from libuv.

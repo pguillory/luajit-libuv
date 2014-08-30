@@ -31,3 +31,18 @@ do
   table.insert(buffer, '5')
   expect.equal(table.concat(buffer), '12345')
 end
+
+loop.run(function()
+  local buffer = {}
+  loop.yield(function()
+    table.insert(buffer, 'yield')
+  end)
+  loop.resume(function()
+    table.insert(buffer, 'resume')
+  end)
+  table.insert(buffer, 'before')
+  timer.sleep(1)
+  table.insert(buffer, 'after')
+  expect.equal(table.concat(buffer, ' '), 'before yield resume after')
+  loop.stop()
+end)
