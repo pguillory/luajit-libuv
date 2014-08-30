@@ -2,9 +2,11 @@ require 'uv/ctypes/init'
 local class = require 'uv/util/class'
 local ffi = require 'ffi'
 local libuv = require 'uv/libuv'
+local libuv2 = require 'uv/libuv2'
 local libhttp_parser = require 'uv/libhttp_parser'
 local uv_tcp_t = require 'uv/ctypes/uv_tcp_t'
 local url = require 'uv.url'
+local join = require 'uv/util/join'
 
 --------------------------------------------------------------------------------
 -- status_codes
@@ -186,22 +188,36 @@ function Server:close()
 end
 
 function Server:listen(callback)
-  self.tcp:listen(function(stream)
-    local request = parse_http(stream, libhttp_parser.HTTP_REQUEST)
+  join(coroutine.create(function()
+    self.tcp:listen(function(stream)
+      join(coroutine.create(function()
+        local client = uv_tcp_t(self.loop)
+        local ok, err = pcall(function()
+          if stream:accept(client) then
+            local request = parse_http(client, libhttp_parser.HTTP_REQUEST)
 
-    url.split(request.url, request)
-    request.ip = ffi.cast('uv_tcp_t*', stream):getpeername()
+            url.split(request.url, request)
+            request.ip = ffi.cast('uv_tcp_t*', client):getpeername()
 
-    local status, headers, body = callback(request)
+            local status, headers, body = callback(request)
 
-    stream:write('HTTP/1.1 ' .. status .. ' ' .. status_codes[status] .. '\n')
-    stream:write('Server: luajit-libuv\n')
-    for field, value in pairs(headers) do
-      stream:write(field .. ': ' .. value .. '\n')
-    end
-    stream:write('Content-Length: ' .. #body .. '\n\n')
-    stream:write(body)
-  end)
+            client:write('HTTP/1.1 ' .. status .. ' ' .. status_codes[status] .. '\n')
+            client:write('Server: luajit-libuv\n')
+            for field, value in pairs(headers) do
+              client:write(field .. ': ' .. value .. '\n')
+            end
+            client:write('Content-Length: ' .. #body .. '\n\n')
+            client:write(body)
+          end
+        end)
+        client:close()
+        if not ok then
+          io.stderr:write(err .. '\n')
+          io.flush()
+        end
+      end))
+    end)
+  end))
 end
 
 --------------------------------------------------------------------------------

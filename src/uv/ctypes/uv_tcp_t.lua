@@ -69,27 +69,17 @@ function uv_tcp_t:write(content)
 end
 
 function uv_tcp_t:listen(on_connect)
-  join(coroutine.create(function()
-    verify(libuv2.uv2_tcp_listen(self, 128, async.uv_connection_cb))
-    while true do
-      local status = async.yield(self)
-      if tonumber(status) >= 0 then
-        join(coroutine.create(function()
-          local client = uv_tcp_t(self.loop)
-          local ok, err = pcall(function()
-            if 0 == tonumber(libuv2.uv2_tcp_accept(self, client)) then
-              on_connect(client)
-            end
-          end)
-          if not ok then
-            io.stderr:write(err .. '\n')
-            io.flush()
-          end
-          client:close()
-        end))
-      end
+  verify(libuv2.uv2_tcp_listen(self, 128, async.uv_connection_cb))
+  while true do
+    local status = async.yield(self)
+    if status >= 0 then
+      on_connect(self)
     end
-  end))
+  end
+end
+
+function uv_tcp_t:accept(client)
+  return (0 == tonumber(libuv2.uv2_tcp_accept(self, client)))
 end
 
 function uv_tcp_t:close()
