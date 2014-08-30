@@ -123,8 +123,12 @@ clean:
 
 test: run-tests
 run-tests: $(LUA)
-	@LUA_PATH="src/?.lua;;" ${LUA} test/uv_test.lua
 	@LUA_PATH="src/?.lua;;" ${LUA} test/fs_test.lua
 	@LUA_PATH="src/?.lua;;" ${LUA} test/http_test.lua
+	@LUA_PATH="src/?.lua;;" ${LUA} test/parallel_test.lua
+	@LUA_PATH="src/?.lua;;" ${LUA} test/process_test.lua
+	@LUA_PATH="src/?.lua;;" ${LUA} test/system_test.lua
 	@LUA_PATH="src/?.lua;;" ${LUA} test/timer_test.lua
+	@LUA_PATH="src/?.lua;;" ${LUA} test/url_test.lua
+	@LUA_PATH="src/?.lua;;" ${LUA} test/uv_test.lua
 	@echo All tests passing

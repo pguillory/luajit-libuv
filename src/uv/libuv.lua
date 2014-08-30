@@ -1,9 +1,9 @@
 local ffi = require 'ffi'
 
-local dir = debug.getinfo(1).source:match('@(.*/)') or ''
+local dir = debug.getinfo(1).source:match('@(.*/)') or '.'
 
 do
-  local file = io.open(dir .. 'lib/libuv.min.h')
+  local file = io.open(dir .. '/lib/libuv.min.h')
   if not file then
     error('libuv.min.h not found')
   end

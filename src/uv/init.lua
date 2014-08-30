@@ -3,15 +3,14 @@ local ffi = require 'ffi'
 local libuv = require 'uv/libuv'
 local libuv2 = require 'uv/libuv2'
 
---------------------------------------------------------------------------------
--- uv
---------------------------------------------------------------------------------
-
 local uv = {}
 
-uv.timer = require 'uv.timer'
 uv.fs = require 'uv.fs'
 uv.http = require 'uv.http'
+uv.parallel = require 'uv.parallel'
+uv.process = require 'uv.process'
+uv.system = require 'uv.system'
+uv.timer = require 'uv.timer'
 uv.url = require 'uv.url'
 
 function uv.run(callback)
@@ -27,30 +26,6 @@ end
 
 function uv.stop()
   return libuv.uv_stop(libuv.uv_default_loop())
-end
-
-function uv.free_memory()
-  return libuv.uv_get_free_memory()
-end
-
-function uv.total_memory()
-  return libuv.uv_get_total_memory()
-end
-
-function uv.hrtime()
-  return libuv.uv_hrtime()
-end
-
-function uv.loadavg()
-  local avg = ffi.new('double[?]', 3)
-  libuv.uv_loadavg(avg)
-  return avg[0], avg[1], avg[2]
-end
-
-function uv.uptime()
-  local time = ffi.new('double[1]')
-  libuv.uv_default_loop():assert(libuv.uv_uptime(time))
-  return time[0]
 end
 
 return uv
