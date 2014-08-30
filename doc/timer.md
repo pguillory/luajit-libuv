@@ -1,5 +1,5 @@
-API Reference - timer
-=====================
+API Reference - uv.timer
+========================
 
 ### timer.set(timeout, callback)
 

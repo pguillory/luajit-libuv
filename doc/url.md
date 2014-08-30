@@ -1,5 +1,5 @@
-API Reference - url
-===================
+API Reference - uv.url
+======================
 
 The `url` module provides functions for working with URLs.
 

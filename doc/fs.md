@@ -1,5 +1,5 @@
-API Reference - fs
-==================
+API Reference - uv.fs
+=====================
 
 The `fs` module provides access to the file system.
 

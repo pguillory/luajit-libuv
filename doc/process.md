@@ -1,5 +1,5 @@
-API Reference - process
-=======================
+API Reference - uv.process
+==========================
 
 The `process` module provides functions for managing processes.
 

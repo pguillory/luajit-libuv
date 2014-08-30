@@ -1,5 +1,5 @@
-API Reference - http
-====================
+API Reference - uv.http
+=======================
 
 The `http` module provides both a client and a server.
 

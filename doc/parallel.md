@@ -1,5 +1,5 @@
-API Reference - parallel
-========================
+API Reference - uv.parallel
+===========================
 
 The `parallel` module contains functions for performing computation in
 parallel across multiple coroutines. Note that Lua coroutines are not

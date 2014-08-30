@@ -59,13 +59,23 @@ make install
 API Reference
 -------------
 
-* [fs](doc/fs.md) - File system
-* [http](doc/http.md) - HTTP client and server
-* [parallel](doc/parallel.md) - Parallel processing
-* [process](doc/process.md) - Process management
-* [timer](doc/timer.md) - Timers
-* [url](doc/url.md) - URL parsing and encoding
-* [uv](doc/uv.md) - Utility functions
+Functions are divided into submodules. Each submodule can either be required directly or accessed indirectly through the `uv` module:
+
+```lua
+local fs = require 'uv.fs'
+
+local uv = require 'uv'
+local fs = uv.fs
+```
+
+* [uv.fs](doc/fs.md) - File system
+* [uv.http](doc/http.md) - HTTP client and server
+* [uv.loop](doc/loop.md) - Event loop control
+* [uv.parallel](doc/parallel.md) - Parallel processing
+* [uv.process](doc/process.md) - Process management
+* [uv.system](doc/system.md) - System utility functions
+* [uv.timer](doc/timer.md) - Timers
+* [uv.url](doc/url.md) - URL parsing and encoding
 
 See Also
 --------
