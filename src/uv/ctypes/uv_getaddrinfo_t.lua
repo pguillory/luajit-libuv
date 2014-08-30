@@ -4,6 +4,7 @@ local ctype = require 'uv/util/ctype'
 local libuv = require 'uv/libuv'
 local libc = require 'uv/libc'
 local uv_loop_t = require 'uv/ctypes/uv_loop_t'
+local verify = require 'uv/util/verify'
 
 local AF_INET = 2
 local AF_INET6 = 28
@@ -41,9 +42,9 @@ end
 function uv_getaddrinfo_t:getaddrinfo(node, service)
   local hints = ffi.new('struct addrinfo')
   -- hints.ai_family = AF_INET
-  self.loop:assert(libuv.uv_getaddrinfo(self.loop, self, async.uv_getaddrinfo_cb, node, service, hints))
+  verify(libuv.uv_getaddrinfo(self.loop, self, async.uv_getaddrinfo_cb, node, service, hints))
   local status, addrinfo = async.yield(self)
-  self.loop:assert(status)
+  verify(status)
   local addrs = {}
   local ai = addrinfo
   while ai ~= ffi.NULL do

@@ -10,6 +10,7 @@ local uv_signal_t = require 'uv/ctypes/uv_signal_t'
 local uv_process_t = require 'uv/ctypes/uv_process_t'
 local uv_process_options_t = require 'uv/ctypes/uv_process_options_t'
 local join = require 'uv/util/join'
+local verify = require 'uv/util/verify'
 
 local signals = {
   kill  = libuv2.uv2_sigkill(),
@@ -42,7 +43,7 @@ end
 
 function process.kill(pid, signum)
   local signum = signum_atoi[signum or 'kill']
-  libuv.uv_default_loop():assert(libuv.uv_kill(pid, signum))
+  verify(libuv.uv_kill(pid, signum))
 end
 
 function process.path()
@@ -56,7 +57,7 @@ end
 
 function process.usage()
   local usage = ffi.new('uv_rusage_t')
-  libuv.uv_default_loop():assert(libuv.uv_getrusage(usage))
+  verify(libuv.uv_getrusage(usage))
   local result = {
     utime = usage.ru_utime.tv_usec,
     stime = usage.ru_stime.tv_usec,
@@ -80,11 +81,11 @@ end
 
 function process.title(value)
   local buf = uv_buf_t()
-  libuv.uv_default_loop():assert(libuv.uv_get_process_title(buf.base, buf.len))
+  verify(libuv.uv_get_process_title(buf.base, buf.len))
   local title = ffi.string(buf.base)
   buf:free()
   if value then
-    libuv.uv_default_loop():assert(uv_set_process_title(value))
+    verify(uv_set_process_title(value))
   end
   return title
 end

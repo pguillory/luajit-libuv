@@ -2,6 +2,7 @@ require 'uv/ctypes/init'
 local ffi = require 'ffi'
 local libuv = require 'uv/libuv'
 local libuv2 = require 'uv/libuv2'
+local verify = require 'uv/util/verify'
 
 local system = {}
 
@@ -25,7 +26,7 @@ end
 
 function system.uptime()
   local time = ffi.new('double[1]')
-  libuv.uv_default_loop():assert(libuv.uv_uptime(time))
+  verify(libuv.uv_uptime(time))
   return time[0]
 end
 

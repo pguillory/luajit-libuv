@@ -2,7 +2,7 @@ local ffi = require 'ffi'
 local ctype = require 'uv/util/ctype'
 local join = require 'uv/util/join'
 local libuv = require 'uv/libuv'
-local errno = require 'uv/util/errno'
+local verify = require 'uv/util/verify'
 
 --------------------------------------------------------------------------------
 -- uv_loop_t
@@ -10,15 +10,8 @@ local errno = require 'uv/util/errno'
 
 local uv_loop_t = ctype('uv_loop_t')
 
-function uv_loop_t:assert(r)
-  if tonumber(r) < 0 then
-    error(errno[r], 2)
-  end
-  return tonumber(r)
-end
-
 function uv_loop_t:run()
-  self:assert(libuv.uv_run(self, libuv.UV_RUN_DEFAULT))
+  verify(libuv.uv_run(self, libuv.UV_RUN_DEFAULT))
 end
 
 function uv_loop_t:stop()

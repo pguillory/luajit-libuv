@@ -9,6 +9,7 @@ local uv_buf_t = require 'uv/ctypes/uv_buf_t'
 local uv_connect_t = require 'uv/ctypes/uv_connect_t'
 local uv_getaddrinfo_t = require 'uv/ctypes/uv_getaddrinfo_t'
 local uv_loop_t = require 'uv/ctypes/uv_loop_t'
+local verify = require 'uv/util/verify'
 
 --------------------------------------------------------------------------------
 -- uv_tcp_t
@@ -38,10 +39,10 @@ function uv_tcp_t:connect(host, port)
   end
   addr = ffi.cast('struct sockaddr*', addr)
 
-  self.loop:assert(libuv.uv_tcp_connect(connect, socket, addr, async.uv_connect_cb))
+  verify(libuv.uv_tcp_connect(connect, socket, addr, async.uv_connect_cb))
   local status = async.yield(connect)
   if status < 0 then
-    self.loop:assert(status)
+    verify(status)
   end
   local handle = connect.handle
   connect:free()
@@ -52,7 +53,7 @@ function uv_tcp_t:read()
   libuv2.uv2_tcp_read_start(self, libuv2.uv2_alloc_cb, async.uv_read_cb)
   local nread, buf = async.yield(self)
   libuv2.uv2_tcp_read_stop(self)
-  self.loop:assert(nread)
+  verify(nread)
   local chunk = (nread < 0) and '' or ffi.string(buf.base, nread)
   libc.free(buf.base)
   return chunk, nread
@@ -61,7 +62,7 @@ end
 function uv_tcp_t:write(content)
   local req = ffi.new('uv_write_t')
   local buf = uv_buf_t(content, #content)
-  self.loop:assert(libuv2.uv2_tcp_write(req, self, buf, 1, async.uv_write_cb))
+  verify(libuv2.uv2_tcp_write(req, self, buf, 1, async.uv_write_cb))
   local status = async.yield(req)
   buf:free()
   return 0 == status
@@ -69,7 +70,7 @@ end
 
 function uv_tcp_t:listen(on_connect)
   join(coroutine.create(function()
-    self.loop:assert(libuv2.uv2_tcp_listen(self, 128, async.uv_connection_cb))
+    verify(libuv2.uv2_tcp_listen(self, 128, async.uv_connection_cb))
     while true do
       local status = async.yield(self)
       if tonumber(status) >= 0 then
@@ -102,9 +103,9 @@ function uv_tcp_t:getsockname()
   local len = ffi.new('int[1]')
   len[0] = ffi.sizeof(addr)
   local buf = libc.malloc(4096)
-  self.loop:assert(libuv.uv_tcp_getsockname(self, addr, len))
+  verify(libuv.uv_tcp_getsockname(self, addr, len))
   addr = ffi.cast('struct sockaddr_in*', addr)
-  self.loop:assert(libuv.uv_ip4_name(addr, buf, 4096))
+  verify(libuv.uv_ip4_name(addr, buf, 4096))
   local peername = ffi.string(buf)
   libc.free(buf)
   return peername
@@ -115,9 +116,9 @@ function uv_tcp_t:getpeername()
   local len = ffi.new('int[1]')
   len[0] = ffi.sizeof(addr)
   local buf = libc.malloc(4096)
-  self.loop:assert(libuv.uv_tcp_getpeername(self, addr, len))
+  verify(libuv.uv_tcp_getpeername(self, addr, len))
   addr = ffi.cast('struct sockaddr_in*', addr)
-  self.loop:assert(libuv.uv_ip4_name(addr, buf, 4096))
+  verify(libuv.uv_ip4_name(addr, buf, 4096))
   local peername = ffi.string(buf)
   libc.free(buf)
   return peername
