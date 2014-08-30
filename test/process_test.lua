@@ -1,5 +1,5 @@
 require 'uv/util/strict'
-local uv = require 'uv'
+local loop = require 'uv.loop'
 local process = require 'uv.process'
 local timer = require 'uv.timer'
 local expect = require 'uv/util/expect'
@@ -12,7 +12,7 @@ do
   expect.equal(signal, 0)
 end
 
-uv.run(function()
+loop.run(function()
   local count = 0
   process.on('hup', function()
     count = count + 1
@@ -22,7 +22,7 @@ uv.run(function()
   process.kill(process.pid(), 'hup')
   timer.sleep(1)
   expect.equal(count, 3)
-  uv.stop()
+  loop.stop()
 end)
 
 do

@@ -60,7 +60,7 @@ Call `callback` when a given signal is received. `signal` can only be "SIGINT", 
 ```lua
 process.on('SIGINT', function()
   print('Shutting down...')
-  uv.stop()
+  os.exit()
 end)
 ```
 

@@ -11,7 +11,7 @@ local uv = require 'uv'
 local fs = uv.fs
 ```
 
-### uv.run()
+### loop.run()
 
 Run the libuv event loop. This is only necessary if an I/O request was created
 in a coroutine without the event loop already running. Requests made outside a
@@ -23,18 +23,18 @@ print(uv.fs.readfile('README.md'))
 ```
 
 In this example, we're not in a coroutine, so `fs.readfile` ran the event loop
-implicitly. There is no need to call `uv.run()`.
+implicitly. There is no need to call `loop.run()`.
 
 ```lua
 coroutine.resume(coroutine.create(function()
   print(uv.fs.readfile('README.md'))
 end))
-uv.run()
+loop.run()
 ```
 
 Here, we manually created a coroutine that called `fs.readfile`, which yielded
 while awaiting the result. The event loop is not running, so unless we called
-`uv.run()`, the program would exit without performing the I/O request and the
+`loop.run()`, the program would exit without performing the I/O request and the
 coroutine would never resume.
 
 ### uv.alive()

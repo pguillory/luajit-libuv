@@ -1,5 +1,5 @@
 require 'uv/util/strict'
-local uv = require 'uv'
+local loop = require 'uv.loop'
 local http = require 'uv.http'
 local join = require 'uv/util/join'
 local expect = require 'uv/util/expect'
@@ -8,7 +8,7 @@ local expect = require 'uv/util/expect'
 -- basic server
 --------------------------------------------------------------------------------
 
-uv.run(function()
+loop.run(function()
   local server = http.listen('127.0.0.1', 7000, function(request)
     expect.equal(request.method, 'GET')
     expect.equal(request.path, '/path/to/route')
@@ -40,7 +40,7 @@ uv.run(function()
   server:close()
 end)
 
-uv.run(function()
+loop.run(function()
   local server = http.listen('127.0.0.1', 7000, function(request)
     expect.equal(request.method, 'POST')
     return 200, {}, ''
@@ -58,7 +58,7 @@ uv.run(function()
   server:close()
 end)
 
--- uv.run(function()
+-- loop.run(function()
 --   local response = http.request{
 --     url = 'http://pygments.appspot.com/',
 --     method = 'post', body = 'lang=lua&code=print',
@@ -69,7 +69,7 @@ end)
 -- middleware pattern
 --------------------------------------------------------------------------------
 
-uv.run(function()
+loop.run(function()
   local access_log = ''
 
   local function with_logging(yield)
@@ -119,7 +119,7 @@ do
     server:close()
   end))
   
-  uv.run()
+  loop.run()
 
   expect.equal(response.body, 'ok')
 end

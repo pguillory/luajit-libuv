@@ -1,11 +1,11 @@
 require 'uv/util/strict'
-local uv = require 'uv'
+local loop = require 'uv.loop'
 local parallel = require 'uv.parallel'
 local timer = require 'uv.timer'
 
 do
   local log = {}
-  uv.run(function()
+  loop.run(function()
     parallel.range(3, function(i)
       table.insert(log, i)
       timer.sleep(1)
@@ -30,7 +30,7 @@ do
   local log = {}
   local outputs = {}
 
-  uv.run(function()
+  loop.run(function()
     outputs = parallel.map(inputs, function(input)
       table.insert(log, input)
       timer.sleep(1)

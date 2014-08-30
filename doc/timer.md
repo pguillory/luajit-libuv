@@ -10,7 +10,7 @@ timer.set(5000, function()
   print('Ding!')
 end)
 print('Waiting 5 seconds...')
-uv.run()
+loop.run()
 print('The timer dinged.')
 ```
 
@@ -26,7 +26,7 @@ timer.every(1000, function(t)
     t:stop()
   end
 end)
-uv.run()
+loop.run()
 ```
 
 ### timer.sleep(timeout, callback)

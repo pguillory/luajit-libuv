@@ -1,5 +1,5 @@
 require 'uv/util/strict'
-local uv = require 'uv'
+local loop = require 'uv.loop'
 local fs = require 'uv.fs'
 local libc = require 'uv/libc'
 local expect = require 'uv/util/expect'
