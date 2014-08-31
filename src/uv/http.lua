@@ -172,26 +172,18 @@ do
 end
 
 --------------------------------------------------------------------------------
--- Server
+-- http
 --------------------------------------------------------------------------------
 
-local Server = class(function(tcp)
-  return { tcp = tcp }
-end)
+local http = {}
 
-function Server:bind(host, port)
-  self.tcp:bind(host, port)
-end
-
-function Server:close()
-  self.tcp:close()
-end
-
-function Server:listen(callback)
+function http.listen(host, port, callback)
+  local server = uv_tcp_t()
+  server:bind(host, port)
   join(coroutine.create(function()
-    self.tcp:listen(function(stream)
+    server:listen(function(stream)
       join(coroutine.create(function()
-        local client = uv_tcp_t(self.loop)
+        local client = uv_tcp_t()
         local ok, err = pcall(function()
           if stream:accept(client) then
             local request = parse_http(client, libhttp_parser.HTTP_REQUEST)
@@ -222,22 +214,6 @@ function Server:listen(callback)
       end))
     end)
   end))
-end
-
---------------------------------------------------------------------------------
--- http
---------------------------------------------------------------------------------
-
-local http = {}
-
-function http.server()
-  return Server(uv_tcp_t())
-end
-
-function http.listen(host, port, callback)
-  local server = http.server()
-  server:bind(host, port)
-  server:listen(callback)
   if not coroutine.running() then
     libuv.uv_default_loop():run()
   end
