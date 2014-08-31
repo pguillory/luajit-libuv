@@ -14,20 +14,20 @@ function url.split(s, parts)
 
   parts = parts or {}
 
-  local u = ffi.new('struct http_parser_url')
-  local r = libhttp_parser.http_parser_parse_url(s, #s, 0, u)
-  if r ~= 0 then
+  local struct = ffi.new('struct http_parser_url')
+  local status = libhttp_parser.http_parser_parse_url(s, #s, 0, struct)
+  if status ~= 0 then
     if s:sub(1, 1) ~= '/' then
       local parts = url.split('/' .. s, parts)
       parts.path = parts.path:sub(2)
       return parts
     end
-    raise('error parsing url')
+    error('error parsing url')
   end
 
   local function segment(name, id)
-    if bit.band(u.field_set, bit.lshift(1, id)) > 0 then
-      local field = u.field_data[id]
+    if bit.band(struct.field_set, bit.lshift(1, id)) > 0 then
+      local field = struct.field_data[id]
       parts[name] = s:sub(field.off + 1, field.off + field.len)
     end
   end
