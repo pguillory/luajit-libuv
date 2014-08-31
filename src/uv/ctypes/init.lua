@@ -4,6 +4,7 @@ return {
   uv_connect_t = require 'uv/ctypes/uv_connect_t',
   uv_fs_t = require 'uv/ctypes/uv_fs_t',
   uv_getaddrinfo_t = require 'uv/ctypes/uv_getaddrinfo_t',
+  uv_handle_t = require 'uv/ctypes/uv_handle_t',
   uv_idle_t = require 'uv/ctypes/uv_idle_t',
   uv_loop_t = require 'uv/ctypes/uv_loop_t',
   uv_prepare_t = require 'uv/ctypes/uv_prepare_t',
