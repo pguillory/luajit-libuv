@@ -18,4 +18,18 @@ function uv_loop_t:stop()
   libuv.uv_stop(self)
 end
 
+function uv_loop_t:close()
+  libuv.uv_loop_close(self)
+end
+
+function uv_loop_t:walk(callback)
+  local callback = ffi.cast('uv_walk_cb', callback)
+  libuv.uv_walk(self, callback, nil)
+  callback:free()
+end
+
+function uv_loop_t:now()
+  return libuv.uv_now(self)
+end
+
 return uv_loop_t

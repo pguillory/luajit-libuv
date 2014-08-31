@@ -22,7 +22,7 @@ function loop.alive()
 end
 
 function loop.stop()
-  return libuv.uv_stop(libuv.uv_default_loop())
+  libuv.uv_default_loop():stop()
 end
 
 function loop.idle(callback)
