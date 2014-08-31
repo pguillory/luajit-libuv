@@ -125,3 +125,8 @@ test: run-tests
 run-tests: $(LUA)
 	LUA_PATH="src/?.lua;;" find test -name "*_test.lua" -exec luajit "{}" ";"
 	@echo All tests passing
+
+benchmark: run-benchmarks
+run-benchmarks: $(LUA)
+	LUA_PATH="src/?.lua;;" find benchmark -name "*_benchmark.lua" -exec luajit "{}" ";"
+	@echo All tests passing
