@@ -40,4 +40,8 @@ function uv_handle_t:typestring()
   return type_itoa[tonumber(self.type)] or 'unknown'
 end
 
+function uv_handle_t:is_active()
+  return 0 ~= libuv.uv_is_active(self)
+end
+
 return uv_handle_t
