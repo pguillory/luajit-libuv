@@ -15,7 +15,7 @@ function system.total_memory()
 end
 
 function system.hrtime()
-  return libuv.uv_hrtime()
+  return tonumber(libuv.uv_hrtime()) / 1000000000
 end
 
 function system.loadavg()

@@ -14,7 +14,7 @@ Returns the total amount of memory in the system, in bytes.
 
 ### system.hrtime()
 
-Returns a high-resolution time in nanoseconds. It is useful for measuring
+Returns a high-resolution time in seconds. It is useful for measuring
 intervals but not for determining the current clock time.
 
 ### system.loadavg()
