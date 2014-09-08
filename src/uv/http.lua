@@ -172,52 +172,94 @@ do
 end
 
 --------------------------------------------------------------------------------
+-- Connection
+--------------------------------------------------------------------------------
+
+local Connection = class(function(socket)
+  return { socket = socket }
+end)
+
+function Connection:receive()
+  local request = parse_http(self.socket, libhttp_parser.HTTP_REQUEST)
+  url.split(request.url, request)
+  request.ip = ffi.cast('uv_tcp_t*', self.socket):getpeername()
+  return request
+end
+
+function Connection:respond(response)
+  self.socket:write('HTTP/1.1 ' .. response.status .. ' ' .. status_codes[response.status] .. '\n')
+
+  response.headers = response.headers or {}
+
+  if not response.headers['Server'] then
+    response.headers['Server'] = 'luajit-libuv'
+  end
+
+  response.headers['Content-Length'] = response.body and #response.body or 0
+
+  for field, value in pairs(response.headers) do
+    self.socket:write(field .. ': ' .. value .. '\n')
+  end
+
+  self.socket:write('\n')
+
+  if response.body then
+    self.socket:write(response.body)
+  end
+end
+
+function Connection:close()
+  return self.socket:close()
+end
+
+--------------------------------------------------------------------------------
+-- Server
+--------------------------------------------------------------------------------
+
+local Server = class(function(server)
+  return { server = server }
+end)
+
+function Server:accept()
+  local socket = self.server:accept()
+  return Connection(socket)
+end
+
+function Server:close()
+  return self.server:close()
+end
+
+--------------------------------------------------------------------------------
 -- http
 --------------------------------------------------------------------------------
 
 local http = {}
 
-function http.listen(host, port, callback)
+function http.listen(host, port, on_request, on_error)
+  if on_request then
+    local server = http.listen(host, port)
+    join(coroutine.create(function()
+      while true do
+        local connection = server:accept()
+        join(coroutine.create(function()
+          local request = connection:receive()
+          local ok, response = xpcall(function()
+            return on_request(request)
+          end, on_error or error)
+          if ok then
+            connection:respond(response)
+          end
+          connection:close()
+        end))
+      end
+    end))
+    return server
+  end
+
   local server = uv_tcp_t()
   server:bind(host, port)
   server:listen()
-  join(coroutine.create(function()
-    while true do
-      local client = server:accept()
-
-      join(coroutine.create(function()
-        local ok, err = pcall(function()
-          local request = parse_http(client, libhttp_parser.HTTP_REQUEST)
-
-          url.split(request.url, request)
-          request.ip = ffi.cast('uv_tcp_t*', client):getpeername()
-
-          local status, headers, body = callback(request)
-
-          if not headers['Server'] then
-            headers['Server'] = 'luajit-libuv'
-          end
-          headers['Content-Length'] = #body
-
-          client:write('HTTP/1.1 ' .. status .. ' ' .. status_codes[status] .. '\n')
-          for field, value in pairs(headers) do
-            client:write(field .. ': ' .. value .. '\n')
-          end
-          client:write('\n')
-          client:write(body)
-        end)
-        client:close()
-        if not ok then
-          io.stderr:write(err .. '\n')
-          io.flush()
-        end
-      end))
-    end
-  end))
-  if not coroutine.running() then
-    libuv.uv_default_loop():run()
-  end
-  return server
+  return Server(server)
 end
 
 function http.request(request)
