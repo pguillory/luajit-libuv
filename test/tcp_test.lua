@@ -3,19 +3,29 @@ local loop = require 'uv.loop'
 local tcp = require 'uv.tcp'
 local join = require 'uv/util/join'
 local expect = require 'uv/util/expect'
-local timer = require 'uv.timer'
-local uv_tcp_t = require 'uv/ctypes/uv_tcp_t'
 
 loop.run(function()
-  local server = tcp.listen('127.0.0.1', 7000, function(client)
-    assert(client:read() == 'ping')
-    client:write('pong')
-  end)
+  local server = tcp.listen('127.0.0.1', 7000)
 
-  local client = tcp.connect('127.0.0.1', 7000)
-  client:write('ping')
-  assert(client:read() == 'pong')
-  client:close()
+  join(coroutine.create(function()
+    while true do
+      local socket = server:accept()
+      while true do
+        local data = socket:read()
+        if data:find('quit') then
+          break
+        end
+        socket:write(data:upper())
+      end
+      socket:close()
+    end
+  end))
+
+  local socket = tcp.connect('127.0.0.1', 7000)
+  socket:write('ping')
+  expect.equal(socket:read(), 'PING')
+  socket:write('quit')
+  socket:close()
 
   server:close()
 end)

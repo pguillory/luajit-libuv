@@ -68,18 +68,18 @@ function uv_tcp_t:write(content)
   return 0 == status
 end
 
-function uv_tcp_t:listen(on_connect)
+function uv_tcp_t:listen()
   verify(libuv2.uv2_tcp_listen(self, 128, async.uv_connection_cb))
-  while true do
-    local status = async.yield(self)
-    if status >= 0 then
-      on_connect(self)
-    end
-  end
 end
 
-function uv_tcp_t:accept(client)
-  return (0 == tonumber(libuv2.uv2_tcp_accept(self, client)))
+function uv_tcp_t:accept()
+  local status = async.yield(self)
+  if status >= 0 then
+    local socket = uv_tcp_t()
+    if 0 == tonumber(libuv2.uv2_tcp_accept(self, socket)) then
+      return socket
+    end
+  end
 end
 
 function uv_tcp_t:close()

@@ -180,31 +180,31 @@ local http = {}
 function http.listen(host, port, callback)
   local server = uv_tcp_t()
   server:bind(host, port)
+  server:listen()
   join(coroutine.create(function()
-    server:listen(function(stream)
+    while true do
+      local client = server:accept()
+
       join(coroutine.create(function()
-        local client = uv_tcp_t()
         local ok, err = pcall(function()
-          if stream:accept(client) then
-            local request = parse_http(client, libhttp_parser.HTTP_REQUEST)
+          local request = parse_http(client, libhttp_parser.HTTP_REQUEST)
 
-            url.split(request.url, request)
-            request.ip = ffi.cast('uv_tcp_t*', client):getpeername()
+          url.split(request.url, request)
+          request.ip = ffi.cast('uv_tcp_t*', client):getpeername()
 
-            local status, headers, body = callback(request)
+          local status, headers, body = callback(request)
 
-            if not headers['Server'] then
-              headers['Server'] = 'luajit-libuv'
-            end
-            headers['Content-Length'] = #body
-
-            client:write('HTTP/1.1 ' .. status .. ' ' .. status_codes[status] .. '\n')
-            for field, value in pairs(headers) do
-              client:write(field .. ': ' .. value .. '\n')
-            end
-            client:write('\n')
-            client:write(body)
+          if not headers['Server'] then
+            headers['Server'] = 'luajit-libuv'
           end
+          headers['Content-Length'] = #body
+
+          client:write('HTTP/1.1 ' .. status .. ' ' .. status_codes[status] .. '\n')
+          for field, value in pairs(headers) do
+            client:write(field .. ': ' .. value .. '\n')
+          end
+          client:write('\n')
+          client:write(body)
         end)
         client:close()
         if not ok then
@@ -212,7 +212,7 @@ function http.listen(host, port, callback)
           io.flush()
         end
       end))
-    end)
+    end
   end))
   if not coroutine.running() then
     libuv.uv_default_loop():run()
