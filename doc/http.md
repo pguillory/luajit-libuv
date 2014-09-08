@@ -50,15 +50,16 @@ Listen for requests at the given host and port. Use a `host` value of
 for requests from your own computer.
 
 Each request will be passed to `callback` in a distinct coroutine. The
-callback should return an HTTP status, a table of response headers, and a
-response body.
+callback should return a table containing the response status, headers, and
+body. Only the status is required.
 
 ```lua
 http.listen('127.0.0.1', 80, function(request)
-  local status = 200
-  local headers = { ['Content-Type'] => 'text/html' }
-  local body = '<h1>Hello world!</h1>'
-  return status, headers, body
+  return {
+    status = 200,
+    headers = { ['Content-Type'] = 'text/html' },
+    body = '<h1>Hello world!</h1>'
+  }
 end)
 ```
 
