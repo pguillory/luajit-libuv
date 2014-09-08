@@ -253,7 +253,12 @@ function http.listen(host, port, on_request, on_error)
         end))
       end
     end))
-    return server
+    if coroutine.running() then
+      return server
+    else
+      libuv.uv_default_loop():run()
+      return
+    end
   end
 
   local server = uv_tcp_t()
