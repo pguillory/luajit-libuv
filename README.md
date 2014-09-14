@@ -1,8 +1,6 @@
 luajit-libuv [![build status](https://travis-ci.org/pguillory/luajit-libuv.svg)](https://travis-ci.org/pguillory/luajit-libuv)
 ============
 
-Status: *in development*
-
 This project provides a [LuaJIT FFI] binding to [libuv], the async I/O library
 powering [Node.js]. It uses Lua coroutines to provide non-blocking I/O with
 synchronous syntax.
@@ -34,6 +32,11 @@ local requests = {
 
 local responses = parallel.map(requests, http.request)
 ```
+
+Status
+------
+
+Not production ready. Under active development. The API is unstable.
 
 Requirements
 ------------
@@ -76,6 +79,12 @@ local fs = uv.fs
 * [uv.system](doc/system.md) - System utility functions
 * [uv.timer](doc/timer.md) - Timers
 * [uv.url](doc/url.md) - URL parsing and encoding
+
+Contributing
+------------
+
+Your contributions are welcome! Please verify that `make test` succeeds and
+submit your changes as a pull request.
 
 See Also
 --------
