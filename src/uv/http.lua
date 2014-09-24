@@ -282,13 +282,13 @@ function http.request(request)
 
   local tcp = uv_tcp_t()
   local client = tcp:connect(host, tonumber(port))
-  client:write(method:upper() .. ' ' .. path .. '?' .. query .. ' HTTP/1.1\n')
-  client:write('Host: ' .. host .. '\n')
-  client:write('User-Agent: luajit-libuv\n')
+  client:write(method:upper() .. ' ' .. path .. '?' .. query .. ' HTTP/1.1\r\n')
+  client:write('Host: ' .. host .. '\r\n')
+  client:write('User-Agent: luajit-libuv\r\n')
   for header, value in pairs(headers) do
-    client:write(header .. ': ' .. value .. '\n')
+    client:write(header .. ': ' .. value .. '\r\n')
   end
-  client:write('Content-Length: ' .. #body .. '\n\n')
+  client:write('Content-Length: ' .. #body .. '\r\n\r\n')
   client:write(body)
 
   local response = parse_http(client, libhttp_parser.HTTP_RESPONSE)
