@@ -280,11 +280,16 @@ function http.request(request)
   local headers = request.headers or {}
   local body    = request.body or ''
 
+  if not headers['Host'] then
+    headers['Host'] = host
+  end
+  if not headers['User-Agent'] then
+    headers['User-Agent'] = 'luajit-libuv'
+  end
+
   local tcp = uv_tcp_t()
   local client = tcp:connect(host, tonumber(port))
   client:write(method:upper() .. ' ' .. path .. '?' .. query .. ' HTTP/1.1\r\n')
-  client:write('Host: ' .. host .. '\r\n')
-  client:write('User-Agent: luajit-libuv\r\n')
   for header, value in pairs(headers) do
     client:write(header .. ': ' .. value .. '\r\n')
   end
